@@ -116,9 +116,9 @@ func (this *ConfigComponent) SetDefault() {
 	this.CustomConfig = nil
 	this.ClusterConfig = &ClusterConfig{
 		MasterAddress: "127.0.0.1:6666",
-		LocalAddress:  "0.0.0.0:6666",
+		LocalAddress:  "127.0.0.1:6666",
 		AppName:       "defaultApp",
-		Role:          []string{"master"},
+		Role:          []string{"single"},
 		NodeDefine: map[string]Node{
 			/*
 				内置角色：master、child、location
@@ -126,15 +126,15 @@ func (this *ConfigComponent) SetDefault() {
 			//master节点
 			"node_master": {LocalAddress: "0.0.0.0:6666", Role: []string{"single"}},
 			//位置服务节点
-			"node_location": {LocalAddress: "0.0.0.0:6603", Role: []string{"location"}},
+			//"node_location": {LocalAddress: "0.0.0.0:6603", Role: []string{"location"}},
 
 			//用户自定义
-			"node_gate":  {LocalAddress: "0.0.0.0:6601", Role: []string{"gate"}},
-			"node_login": {LocalAddress: "0.0.0.0:6602", Role: []string{"login"}},
-			"node_room":  {LocalAddress: "0.0.0.0:6605", Role: []string{"room"}},
+			//"node_gate":  {LocalAddress: "0.0.0.0:6601", Role: []string{"gate"}},
+			//"node_login": {LocalAddress: "0.0.0.0:6602", Role: []string{"login"}},
+			//"node_room":  {LocalAddress: "0.0.0.0:6605", Role: []string{"room"}},
 
 			//dubug 或 单服
-			"node_single": {LocalAddress: "0.0.0.0:6666", Role: []string{"master", "gate", "login", "room"}},
+			"node_single": {LocalAddress: "0.0.0.0:6666", Role: []string{"master", "gate"}}, /*, "gate", "login", "room"}},*/
 		},
 
 		ReportInterval:       3000,
@@ -145,7 +145,7 @@ func (this *ConfigComponent) SetDefault() {
 		LocationSyncInterval: 500,
 
 		NetConnTimeout:   9000,
-		NetListenAddress: "0.0.0.0:5555",
+		NetListenAddress: "127.0.0.1:5555",
 
 		//IsActorModel: true,
 	}

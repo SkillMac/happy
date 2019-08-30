@@ -116,7 +116,6 @@ func (this *WebSocketHandler) recv(sess *Session, conn *websocket.Conn) {
 	defer conn.Close()
 
 	sess.SetProperty("workerId", int32((-1)))
-
 	handler := func(args ...interface{}) {
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, "cid", args[0])
