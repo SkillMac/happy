@@ -3,7 +3,11 @@ package hConfig
 import (
 	"../hECS"
 	"../hLog"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 )
@@ -37,34 +41,32 @@ func (this *ConfigComponent) Initialize() error {
 }
 
 func (this *ConfigComponent) loadConfig(configpath string, cfg interface{}) error {
-	//data, err := ioutil.ReadFile(configpath)
-	//if err != nil {
-	//	//文件不存在时创建配置文件，并写入默认值
-	//	if os.IsNotExist(err) {
-	//		if err := os.MkdirAll(filepath.Dir(configpath), 0666); err != nil {
-	//			if os.IsPermission(err) {
-	//				return err
-	//			}
-	//		}
-	//		b, err := json.MarshalIndent(cfg, "", "    ")
-	//		if err != nil {
-	//			return err
-	//		}
-	//		err = ioutil.WriteFile(configpath, b, 0666)
-	//		if err != nil {
-	//			return err
-	//		}
-	//	} else {
-	//		return err
-	//	}
-	//} else {
-	//	err = json.Unmarshal(data, cfg)
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
-	//return nil
-	//json.Unmarshal(data, cfg)
+	data, err := ioutil.ReadFile(configpath)
+	if err != nil {
+		//文件不存在时创建配置文件，并写入默认值
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(filepath.Dir(configpath), 0666); err != nil {
+				if os.IsPermission(err) {
+					return err
+				}
+			}
+			b, err := json.MarshalIndent(cfg, "", "    ")
+			if err != nil {
+				return err
+			}
+			err = ioutil.WriteFile(configpath, b, 0666)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		err = json.Unmarshal(data, cfg)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -110,7 +112,7 @@ func (this *ConfigComponent) SetDefault() {
 		LogMode:  hLog.ROLLFILE,
 		//LogFileUnit:     hLog.MB,
 		LogFileMax:      10,
-		LogFileSizeMax:  10,
+		LogFileSizeMax:  10, // 这里默认单位设置成了 MB
 		LogConsolePrint: true,
 	}
 	this.CustomConfig = nil

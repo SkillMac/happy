@@ -1,0 +1,31 @@
+{
+    "MasterAddress": "127.0.0.1:6666",
+    "LocalAddress": "127.0.0.1:6666",
+    "AppName": "defaultApp",
+    "Role": [
+        "single"
+    ],
+    "NodeDefine": {
+        "node_master": {
+            "LocalAddress": "0.0.0.0:6666",
+            "Role": [
+                "single"
+            ]
+        },
+        "node_single": {
+            "LocalAddress": "0.0.0.0:6666",
+            "Role": [
+                "master",
+                "gate"
+            ]
+        }
+    },
+    "ReportInterval": 3000,
+    "RpcTimeout": 9000,
+    "RpcCallTimeout": 5000,
+    "RpcHeartBeatInterval": 3000,
+    "IsLocationMode": true,
+    "LocationSyncInterval": 500,
+    "NetConnTimeout": 9000,
+    "NetListenAddress": "127.0.0.1:5555"
+}

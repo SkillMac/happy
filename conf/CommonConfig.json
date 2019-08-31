@@ -1,0 +1,10 @@
+{
+    "Debug": true,
+    "RuntimeMaxWorker": 8,
+    "LogLevel": 1,
+    "LogPath": "./log",
+    "LogMode": 1,
+    "LogFileMax": 10,
+    "LogFileSizeMax": 10,
+    "LogConsolePrint": true
+}
