@@ -72,7 +72,7 @@ func (this *LauncherComponent) Serve() {
 	//添加组件到待选组件列表，默认添加master,child组件
 	this.AddComponentGroup("master", []hEcs.IComponent{&hCluster.MasterComponent{}})
 	this.AddComponentGroup("child", []hEcs.IComponent{&hCluster.ChildComponent{}})
-	if hConfig.Config.ClusterConfig.IsLocationMode && hConfig.Config.ClusterConfig.Role[0] != "single" {
+	if hConfig.Config.ClusterConfig.IsLocationMode && len(hConfig.Config.ClusterConfig.Role) > 0 && hConfig.Config.ClusterConfig.Role[0] != "single" {
 		this.AddComponentGroup("location", []hEcs.IComponent{&hCluster.LocationComponent{}})
 	}
 

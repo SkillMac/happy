@@ -106,7 +106,6 @@ func (this *ApiBase) GetParent() (*hEcs.Object, error) {
 func (this *ApiBase) Route(sess *Session, messageID uint32, data []byte) {
 	this.checkInit()
 	defer hCommon.CheckError()
-
 	if mt, ok := route[messageID]; ok {
 		v := reflect.New(mt.argsType.Elem())
 		err := this.protoc.Unmarshal(data, v.Interface())
@@ -206,6 +205,7 @@ func (this *ApiBase) RegisterGroup(api interface{}) {
 		mtype := method.Type
 		mname := method.Name
 		// Method must be exported.
+
 		if method.PkgPath != "" {
 			continue
 		}
@@ -232,7 +232,6 @@ func (this *ApiBase) RegisterGroup(api interface{}) {
 		//if returnType := mtype.Out(0); returnType != typeOfError {
 		//	continue
 		//}
-
 		if index, ok := mt2id[argsType]; ok {
 			if _, exist := route[index]; exist {
 				panic(ErrApiRepeated)

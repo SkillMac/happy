@@ -3,20 +3,20 @@
     "LocalAddress": "127.0.0.1:6666",
     "AppName": "defaultApp",
     "Role": [
-        "single"
     ],
     "NodeDefine": {
         "node_master": {
             "LocalAddress": "0.0.0.0:6666",
             "Role": [
-                "single"
+                "master"
             ]
         },
         "node_single": {
             "LocalAddress": "0.0.0.0:6666",
             "Role": [
                 "master",
-                "gate"
+                "gate",
+                "login"
             ]
         }
     },
