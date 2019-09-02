@@ -49,11 +49,13 @@ func (this *DefaultGateComponent) Awake(ctx *hEcs.Context) {
 		Protocol:             "ws",
 		PackageProtocol:      &hNet.TdProtocol{},
 		Address:              hConfig.Config.ClusterConfig.NetListenAddress,
+		IsUsePool:            true,
+		QueueCap:             10000,
 		ReadTimeout:          time.Millisecond * time.Duration(hConfig.Config.ClusterConfig.NetConnTimeout),
 		OnClientDisconnected: this.OnDropped,
 		OnClientConnected:    this.OnConnected,
 		LogicAPI:             this.NetAPI,
-		MaxInvoke:            20,
+		MaxInvoke:            1000,
 	}
 
 	this.server = hNet.NewServer(conf)

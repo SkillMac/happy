@@ -5,6 +5,7 @@ import (
 	"../../hCluster"
 	"../../hNet"
 	"../../hNet/messageProtocol"
+	"../../hLog"
 	"../logicComponents"
 	"fmt"
 )
@@ -88,8 +89,9 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 		return
 	}
 
-	reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, message)
+	reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, message.Nickname)
 	if err != nil {
+		hLog.Debug(err);
 		errReply("登录失败服务器登录节点异常")
 		return
 	}

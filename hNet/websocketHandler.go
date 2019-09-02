@@ -131,7 +131,7 @@ func (this *WebSocketHandler) recv(sess *Session, conn *websocket.Conn) {
 		}
 	}
 
-	wid := int32(-1)
+	wid := int32(atomic.LoadInt32(&this.acceptNum))
 	for !this.server.isClosed {
 		_, pkg, err := conn.ReadMessage()
 		if err != nil || pkg == nil {

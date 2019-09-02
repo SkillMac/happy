@@ -18,6 +18,18 @@
                 "gate",
                 "login"
             ]
+        },
+        "node_gate": {
+            "LocalAddress": "0.0.0.0:6667",
+            "Role": [
+                "gate"
+            ]
+        },
+        "node_login": {
+            "LocalAddress": "0.0.0.0:6668",
+            "Role": [
+                "login"
+            ]
         }
     },
     "ReportInterval": 3000,
