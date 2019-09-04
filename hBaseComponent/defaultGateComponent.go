@@ -71,11 +71,13 @@ func (this *DefaultGateComponent) AddNetAPI(api hNet.ILogicAPI) {
 
 func (this *DefaultGateComponent) OnConnected(sess *hNet.Session) {
 	this.clients.Store(sess.Id, sess)
+	this.NetAPI.OnConnect(sess)
 	hLog.Debug(fmt.Sprintf("client [ %s ] connected,session id :[ %s ]", sess.RemoteAddr(), sess.Id))
 }
 
 func (this *DefaultGateComponent) OnDropped(sess *hNet.Session) {
 	this.clients.Delete(sess.Id)
+	this.NetAPI.OnDisconnect(sess)
 }
 
 func (this *DefaultGateComponent) Destroy() error {

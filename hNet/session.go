@@ -73,6 +73,13 @@ func (this *Session) Emit(messageType uint32, message []byte) error {
 	return this.conn.WriteMessage(messageType, message)
 }
 
+func (this *Session) IsClose() bool {
+	if this.conn == nil {
+		return true
+	}
+	return false
+}
+
 /**
 New
 */

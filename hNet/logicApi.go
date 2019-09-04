@@ -253,3 +253,9 @@ func (this *ApiBase) GetMessageType(message interface{}) (uint32, bool) {
 	id, ok := mt2id[reflect.TypeOf(message)]
 	return id, ok
 }
+
+func (this *ApiBase) OnConnect(sess *Session) {
+}
+
+func (this *ApiBase) OnDisconnect(sess *Session) {
+}

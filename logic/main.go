@@ -6,7 +6,7 @@ import (
 	"../hECS"
 	"../hLog"
 	"./api"
-	"./logicComponents"
+	"./components"
 	"flag"
 	"fmt"
 )
@@ -26,7 +26,12 @@ func main() {
 	gate := &hBaseComponent.DefaultGateComponent{}
 
 	gate.AddNetAPI(api.NewLogicApi())
-	launcher.AddComponentGroup("gate", []hEcs.IComponent{gate})
-	launcher.AddComponentGroup("login", []hEcs.IComponent{&logicComponents.LoginComponent{}})
+
+	launcher.AddComponentGroups(map[string][]hEcs.IComponent{
+		"gate":  []hEcs.IComponent{gate},
+		"login": []hEcs.IComponent{&components.LoginComponent{}},
+		"match": []hEcs.IComponent{&components.MatchComponent{}},
+		"room":  []hEcs.IComponent{&components.RoomManagerComponent{}},
+	})
 	launcher.Serve()
 }

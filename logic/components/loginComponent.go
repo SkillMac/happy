@@ -1,10 +1,9 @@
-package logicComponents
+package components
 
 import (
 	"../../hActor"
 	"../../hECS"
 	"fmt"
-	"sync"
 )
 
 /*
@@ -18,14 +17,7 @@ type LoginMessage struct {
 // 继承 ComponentBase 和 ActorBase(这个如果没有永奥可以不继承)
 // 必须加读写锁
 type LoginComponent struct {
-	hEcs.ComponentBase
-	hActor.ActorBase
-	locker sync.RWMutex
-}
-
-func (this *LoginComponent) Initialize() error {
-	this.ActorInit(this.Parent())
-	return nil
+	BaseComponent
 }
 
 var Service_Login_Login = "Login"
@@ -39,7 +31,3 @@ func (this *LoginComponent) Login(message *hActor.ActorMessageInfo) error {
 
 	return message.Reply("我收到了消息")
 }
-
-
-
-

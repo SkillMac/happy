@@ -1,0 +1,13 @@
+# 注意
+
+## 需要将逻辑逻辑分布式部署 在 main 函数里面写
+```go
+launcher.AddComponentGroup("login", []hEcs.IComponent{&logicComponents.LoginComponent{}})
+```
+可将其中的 login 换位其他逻辑 里面的组件同样的道理
+
+## 路由层
+```
+reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, message.Nickname)
+```
+最后一个参数不允许传递结构体过去, 只能是常用的数据类型

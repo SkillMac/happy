@@ -3,17 +3,22 @@ package api
 import (
 	"../../hActor"
 	"../../hCluster"
+	"../../hLog"
 	"../../hNet"
 	"../../hNet/messageProtocol"
-	"../../hLog"
-	"../logicComponents"
+	"../components"
+	"container/list"
 	"fmt"
+	"sync"
+	"time"
 )
 
 type LogicApi struct {
 	hNet.ApiBase
-	nodeComponent *hCluster.NodeComponent
-	actorProxy *hActor.ActorProxyComponent
+	nodeComponent   *hCluster.NodeComponent
+	actorProxy      *hActor.ActorProxyComponent
+	matchSessionMap list.List // *innerMatchPlayer
+	rwLock          sync.RWMutex
 }
 
 func NewLogicApi() *LogicApi {
@@ -70,7 +75,7 @@ func (this *LogicApi) Hello(sess *hNet.Session, message *TestMessage) {
 	println(fmt.Sprintf("hello %s", message.Name))
 	this.Reply(sess, &CommonResMessage{
 		Statue: CODE_OK,
-		Msg: "Hello Client: 我收到了你的消息",
+		Msg:    "Hello Client: 我收到了你的消息",
 	})
 }
 
@@ -78,7 +83,7 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 	errReply := func(msg string) {
 		r := &CommonResMessage{
 			Statue: CODE_ERROR,
-			Msg: msg,
+			Msg:    msg,
 		}
 		this.Reply(sess, r)
 	}
@@ -89,16 +94,68 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 		return
 	}
 
-	reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, message.Nickname)
+	reply, err := serviceCaller.Call("login", components.Service_Login_Login, message.Nickname)
 	if err != nil {
-		hLog.Debug(err);
+		hLog.Debug(err)
 		errReply("登录失败服务器登录节点异常")
 		return
 	}
 
 	this.Reply(sess, &LoginResMessage{
 		Statue: CODE_OK,
-		Msg: reply[0].(string),
+		Msg:    reply[0].(string),
 	})
 }
 
+/**
+匹配相关的逻辑
+*/
+
+type innerMatchPlayer struct {
+	sid     string
+	lv      int
+	session *hNet.Session
+}
+
+func (this *LogicApi) MatchTimer() {
+	timer := time.NewTicker(time.Second)
+
+	// 每秒轮训查找一次匹配列表中
+	for {
+		select {
+		case <-timer.C:
+			{
+
+			}
+		}
+	}
+}
+
+func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
+	//r := &MatchResMessage{
+	//	CommonResMessage{
+	//		Statue: CODE_OK,
+	//		Msg:    "",
+	//	}, components.MatchPlayInfo{
+	//		NickName: "",
+	//		HeadUrl:  "",
+	//		Lv:       0,
+	//	},
+	//}
+	//
+	//session.SetProperty("lv", 1)
+	//
+	//errReply := func(msg string) {
+	//	r.Statue = CODE_ERROR
+	//	r.Msg = msg
+	//	this.Reply(session, r)
+	//}
+
+	//lv, ok := session.GetProperty("lv")
+	//if !ok {
+	//	hLog.Error("网关服务器 匹配 获取玩家等级异常")
+	//	errReply("网关服务器 匹配 获取玩家等级异常")
+	//	return
+	//}
+
+}

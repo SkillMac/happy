@@ -19,6 +19,8 @@ type ILogicAPI interface {
 	Init(parent ...*hEcs.Object)
 	Route(session *Session, messageID uint32, data []byte)
 	Reply(session *Session, message interface{})
+	OnConnect(session *Session)
+	OnDisconnect(session *Session)
 }
 
 type IWsConn interface {
