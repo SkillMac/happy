@@ -7,7 +7,12 @@ import (
 	"../../hNet"
 	"../../hNet/messageProtocol"
 	"../components"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -81,6 +86,44 @@ func (this *LogicApi) Hello(sess *hNet.Session, message *TestMessage) {
 	})
 }
 
+//微信登陆的相关逻辑
+type ReqWxObj struct {
+	Openid    string `json:"openid"`
+	SessonKey string `json:"sesson_key"`
+	Unionid   string `json:"unionid"`
+	Errcode   int    `json:"errcode"`
+	ErrMsg    string `json:"err_msg"`
+}
+
+func loginWX(code string) (wxInfo ReqWxObj, err error) {
+	appId := "wx5cd18aeada5cf68b"
+	appSecret := "03fb90bc2d468e4dc7da0d6553a993f3"
+	url := "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code"
+	resp, err := http.Get(fmt.Sprintf(url, appId, appSecret, code))
+	if err != nil {
+		return wxInfo, err
+	}
+	defer resp.Body.Close()
+	err = BindJson(resp.Body, &wxInfo)
+	if err != nil {
+		return wxInfo, err
+	}
+	if wxInfo.Errcode != 0 {
+		return wxInfo, errors.New(fmt.Sprintf("code:%d,errmsg:%s", wxInfo.Errcode, wxInfo.ErrMsg))
+	}
+	return wxInfo, nil
+}
+
+func BindJson(body io.ReadCloser, retMap interface{}) error {
+	bodybuf, err := ioutil.ReadAll(body)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("bodybuf : %v", bodybuf)
+	json.Unmarshal(bodybuf, &retMap)
+	return nil
+}
+
 func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 	errReply := func(msg string) {
 		r := &CommonResMessage{
@@ -96,13 +139,22 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 		return
 	}
 
-	reply, err := serviceCaller.Call("login", components.Service_Login_Login, message.Nickname)
-	if err != nil {
-		hLog.Debug(err)
-		errReply("登录失败服务器登录节点异常")
-		return
+	fmt.Println("message   v  \n", message)
+	wxInfo := ""
+	if message.JsCode != "123" {
+		wxInfo, err := loginWX(message.JsCode)
+		fmt.Println("wxInfo,err:", wxInfo, err)
+	} else {
+		wxInfo = "openid111111111111111"
 	}
 
+	reply, err := serviceCaller.Call("login", components.Service_Login_Login, message.NickName,message.HeadUrl,message.JsCode, wxInfo)
+	if err != nil {
+		hLog.Debug(err)
+		errReply("登录失败服务器登录节40013点异常")
+		return
+	}
+	fmt.Printf("reply %v", reply)
 	this.Reply(sess, &LoginResMessage{
 		Statue: CODE_OK,
 		Msg:    reply[0].(string),

@@ -19,7 +19,8 @@ type TestMessage struct {
 
 // 客户端向服务器发送的结构器
 type LoginMessage struct {
-	Nickname string // 微信名字
+	JsCode string //jscode
+	NickName string // 微信名字
 	HeadUrl  string // 头像地址
 }
 
