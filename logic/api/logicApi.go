@@ -7,7 +7,6 @@ import (
 	"../../hNet"
 	"../../hNet/messageProtocol"
 	"../components"
-	"container/list"
 	"fmt"
 	"sync"
 	"time"
@@ -17,12 +16,15 @@ type LogicApi struct {
 	hNet.ApiBase
 	nodeComponent   *hCluster.NodeComponent
 	actorProxy      *hActor.ActorProxyComponent
-	matchSessionMap list.List // *innerMatchPlayer
+	matchSessionMap map[string]*innerMatchPlayer
+	chanMatchPlay   map[string]chan *innerMatchPlayer
 	rwLock          sync.RWMutex
 }
 
 func NewLogicApi() *LogicApi {
 	ta := &LogicApi{}
+	ta.matchSessionMap = make(map[string]*innerMatchPlayer)
+	ta.chanMatchPlay = make(map[string]chan *innerMatchPlayer)
 	ta.Instance(ta).SetMT2ID(Id2mt).SetProtocol(&messageProtocol.JsonProtocol{})
 	return ta
 }
@@ -112,50 +114,159 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 */
 
 type innerMatchPlayer struct {
-	sid     string
-	lv      int
-	session *hNet.Session
+	sid       string
+	lv        int
+	session   *hNet.Session
+	other     *innerMatchPlayer
+	isSuccess chan bool
 }
 
-func (this *LogicApi) MatchTimer() {
-	timer := time.NewTicker(time.Second)
+/**
+匹配算法
+返回true 则为 这俩玩家可以被匹配
+返回false 则为 这俩玩家不可以被匹配
+*/
+func (this *LogicApi) MatchRule(p1 *innerMatchPlayer, p2 *innerMatchPlayer) bool {
+	if p1.sid == p2.sid {
+		return false
+	}
 
+	if p1.lv-p2.lv >= -3 || p1.lv-p2.lv <= 3 {
+		return true
+	}
+	return false
+}
+
+func (this *LogicApi) MatchSuccess(p1 *innerMatchPlayer, p2 *innerMatchPlayer) {
+	this.rwLock.Lock()
+	p1.other = p2
+	p2.other = p1
+	delete(this.matchSessionMap, p1.sid)
+	delete(this.matchSessionMap, p2.sid)
+	this.rwLock.Unlock()
+	p2.isSuccess <- true
+}
+
+func (this *LogicApi) MatchTimer(curMatchPlayer *innerMatchPlayer, chanOther chan<- *innerMatchPlayer) {
+	timer := time.NewTicker(time.Second)
+	var other *innerMatchPlayer = nil
+	passTime := 0
 	// 每秒轮训查找一次匹配列表中
 	for {
 		select {
 		case <-timer.C:
 			{
+				if passTime == 5 {
+					timer.Stop()
+					this.rwLock.Lock()
+					delete(this.matchSessionMap, curMatchPlayer.sid)
+					this.rwLock.Unlock()
+					other = &innerMatchPlayer{
+						sid:     "",
+						lv:      99,
+						session: nil,
+					}
+					hLog.Debug("匹配超时")
+					goto Loop
+				}
 
+				this.rwLock.RLock()
+
+				if _, ok := this.matchSessionMap[curMatchPlayer.sid]; !ok {
+					timer.Stop()
+					this.rwLock.RUnlock()
+					other = curMatchPlayer.other
+					goto Loop
+				}
+
+				for _, item := range this.matchSessionMap {
+					if this.MatchRule(curMatchPlayer, item) {
+						this.rwLock.RUnlock()
+						this.MatchSuccess(curMatchPlayer, item)
+						timer.Stop()
+						other = item
+						hLog.Debug("匹配真人")
+						goto Loop
+					}
+				}
+				this.rwLock.RUnlock()
+				passTime++
 			}
+		case <-curMatchPlayer.isSuccess:
+			hLog.Debug("自己被别人匹配了")
+			// 自己被别人匹配了
+			timer.Stop()
+			other = curMatchPlayer.other
+			goto Loop
 		}
 	}
+Loop:
+	hLog.Debug("OOOOOOO 哈哈哈哈哈哈哈哈")
+	chanOther <- other
 }
 
 func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
-	//r := &MatchResMessage{
-	//	CommonResMessage{
-	//		Statue: CODE_OK,
-	//		Msg:    "",
-	//	}, components.MatchPlayInfo{
-	//		NickName: "",
-	//		HeadUrl:  "",
-	//		Lv:       0,
-	//	},
-	//}
-	//
-	//session.SetProperty("lv", 1)
-	//
-	//errReply := func(msg string) {
-	//	r.Statue = CODE_ERROR
-	//	r.Msg = msg
-	//	this.Reply(session, r)
-	//}
+	fmt.Println("来消息了  匹配")
+	r := &MatchResMessage{
+		CommonResMessage{
+			Statue: CODE_OK,
+			Msg:    "",
+		}, components.MatchPlayInfo{
+			NickName: "",
+			HeadUrl:  "",
+			Lv:       0,
+		},
+	}
 
-	//lv, ok := session.GetProperty("lv")
-	//if !ok {
-	//	hLog.Error("网关服务器 匹配 获取玩家等级异常")
-	//	errReply("网关服务器 匹配 获取玩家等级异常")
-	//	return
-	//}
+	session.SetProperty("lv", 1)
 
+	errReply := func(msg string) {
+		r.Statue = CODE_ERROR
+		r.Msg = msg
+		this.Reply(session, r)
+	}
+
+	lv, ok := session.GetProperty("lv")
+	if !ok {
+		hLog.Error("网关服务器 匹配 获取玩家等级异常")
+		errReply("网关服务器 匹配 获取玩家等级异常")
+		return
+	}
+	this.rwLock.Lock()
+	if _, ok := this.matchSessionMap[session.Id]; !ok {
+		this.matchSessionMap[session.Id] = &innerMatchPlayer{
+			sid:       session.Id,
+			lv:        lv.(int),
+			session:   session,
+			isSuccess: make(chan bool),
+			other:     nil,
+		}
+		this.chanMatchPlay[session.Id] = make(chan *innerMatchPlayer)
+	} else {
+		errReply("匹配中")
+		return
+	}
+	this.rwLock.Unlock()
+	go this.MatchTimer(this.matchSessionMap[session.Id], this.chanMatchPlay[session.Id])
+	otherPlayer := <-this.chanMatchPlay[session.Id]
+
+	/**
+	匹配完成
+	1.组装玩家1的数据
+	2.组装玩家2的数据
+	3.判断连接是否正常
+	4.一处通道, 和 匹配玩家信息的map
+	5.返回玩家
+	*/
+	r.NickName = session.Id
+	r.Lv = otherPlayer.lv
+	r.HeadUrl = "https://www.baidu.com"
+	this.rwLock.Lock()
+	close(this.chanMatchPlay[session.Id])
+	delete(this.chanMatchPlay, session.Id)
+	this.rwLock.Unlock()
+	fmt.Println("发送数据", session.IsClose())
+	if !session.IsClose() {
+		this.Reply(session, r)
+	}
 }
