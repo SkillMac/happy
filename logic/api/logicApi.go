@@ -148,7 +148,7 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 		wxInfo = "openid111111111111111"
 	}
 
-	reply, err := serviceCaller.Call("login", components.Service_Login_Login, message.NickName,message.HeadUrl,message.JsCode, wxInfo)
+	reply, err := serviceCaller.Call("login", components.Service_Login_Login, message.NickName, message.HeadUrl, message.JsCode, wxInfo)
 	if err != nil {
 		hLog.Debug(err)
 		errReply("登录失败服务器登录节40013点异常")
@@ -214,7 +214,7 @@ func (this *LogicApi) MatchTimer(curMatchPlayer *innerMatchPlayer, chanOther cha
 					delete(this.matchSessionMap, curMatchPlayer.sid)
 					this.rwLock.Unlock()
 					other = &innerMatchPlayer{
-						sid:     "",
+						sid:     "机器人",
 						lv:      99,
 						session: nil,
 					}
@@ -258,7 +258,7 @@ Loop:
 }
 
 func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
-	fmt.Println("来消息了  匹配")
+	hLog.Info("来消息了  匹配")
 	r := &MatchResMessage{
 		CommonResMessage{
 			Statue: CODE_OK,
@@ -310,15 +310,158 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	4.一处通道, 和 匹配玩家信息的map
 	5.返回玩家
 	*/
-	r.NickName = session.Id
+	session.SetProperty("OtherPlayer", otherPlayer.session)
+	r.NickName = otherPlayer.sid
 	r.Lv = otherPlayer.lv
 	r.HeadUrl = "https://www.baidu.com"
 	this.rwLock.Lock()
 	close(this.chanMatchPlay[session.Id])
 	delete(this.chanMatchPlay, session.Id)
 	this.rwLock.Unlock()
+
+	/**
+	通知房间服务器创建房间
+	*/
+	serviceCaller, err := this.Upgrade(session)
+	if err != nil {
+		errReply("服务器Match 回话转换失败")
+		return
+	}
+
+	reply, err := serviceCaller.Call("room", components.Service_RoomManager_NewRoom, session.Id, otherPlayer.sid)
+	if err != nil {
+		hLog.Debug(err)
+		errReply("匹配 呼叫 房间服务器失败")
+		return
+	}
+
+	r.RoomId = reply[0].(int)
+
 	fmt.Println("发送数据", session.IsClose())
 	if !session.IsClose() {
 		this.Reply(session, r)
+	}
+}
+
+/**
+创建房间的逻辑
+*/
+
+func (this *LogicApi) CreateRoom(session *hNet.Session, message *CreateRoomMessage) {
+	r := &CreateRoomResMessage{
+		CommonResMessage{
+			Statue: CODE_OK,
+			Msg:    "",
+		},
+		-1,
+	}
+
+	errReply := func(msg string) {
+		r.Statue = CODE_ERROR
+		r.Msg = msg
+		this.Reply(session, r)
+	}
+
+	serviceCaller, err := this.Upgrade(session)
+	if err != nil {
+		errReply("服务器CreateRoom 回话转换失败")
+		return
+	}
+
+	reply, err := serviceCaller.Call("room", components.Service_RoomManager_NewRoom, session.Id, "")
+	if err != nil {
+		hLog.Debug(err)
+		errReply("匹配 呼叫 房间服务器创建房间的函数失败")
+		return
+	}
+
+	r.RoomId = reply[0].(int)
+
+	if !session.IsClose() {
+		this.Reply(session, r)
+	}
+}
+
+func (this *LogicApi) JoinRoom(session *hNet.Session, message *JoinRoomMessage) {
+	r := &JoinRoomResMessage{
+		CommonResMessage{
+			Statue: CODE_OK,
+			Msg:    "",
+		},
+	}
+
+	errReply := func(msg string) {
+		r.Statue = CODE_ERROR
+		r.Msg = msg
+		hLog.Info(msg)
+		this.Reply(session, r)
+	}
+
+	serviceCaller, err := this.Upgrade(session)
+	if err != nil {
+		errReply("服务器 JoinRoom 回话转换失败")
+		return
+	}
+
+	roomId := message.RoomId
+
+	reply, err := serviceCaller.Call("room", components.Service_RoomManager_JoinRoom, roomId, session.Id)
+	if err != nil {
+		hLog.Info(err)
+		errReply("匹配 呼叫 房间服务器加入房间的函数失败")
+		return
+	}
+	r.Msg = reply[1].(string)
+	if !session.IsClose() {
+		this.Reply(session, r)
+	}
+}
+
+/**errReply
+同步逻辑
+*/
+
+func (this *LogicApi) getServiceCall(session *hNet.Session, errReply func(msg string), MethodName string) *hActor.ActorServiceCaller {
+	serviceCaller, err := this.Upgrade(session)
+	if err != nil {
+		errReply("服务器 " + MethodName + "回话转换失败")
+		return serviceCaller
+	}
+	return nil
+}
+
+func (this *LogicApi) SyncData(session *hNet.Session, message *SyncMessage) {
+	r := &SyncResMessage{
+		CommonResMessage{
+			Statue: CODE_OK,
+			Msg:    "",
+		}, *message,
+	}
+
+	errReply := func(msg string) {
+		r.Statue = CODE_ERROR
+		r.Msg = msg
+		hLog.Info(msg)
+		this.Reply(session, r)
+	}
+
+	//serviceCaller := this.getServiceCall(session, errReply, "SyncData")
+
+	/**
+	注意判断要同步玩家是否掉线
+	*/
+	otherS, ok := session.GetProperty("OtherPlayer")
+	if !ok {
+		hLog.Info("同步数据 敌方玩家 回话获取失败")
+		errReply("同步数据 敌方玩家 回话获取失白")
+		return
+	}
+
+	otherSession := otherS.(*hNet.Session)
+
+	if !otherSession.IsClose() {
+		this.Reply(otherSession, r)
+	} else {
+		errReply("对方掉线")
 	}
 }

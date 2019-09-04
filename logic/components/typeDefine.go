@@ -5,4 +5,5 @@ type MatchPlayInfo struct {
 	NickName string
 	HeadUrl  string
 	Lv       int
+	RoomId   int
 }
