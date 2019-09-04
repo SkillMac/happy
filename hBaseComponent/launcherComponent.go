@@ -69,6 +69,8 @@ func (this *LauncherComponent) Serve() {
 	//添加ActorProxy组件，组织节点间的通信
 	this.Root().AddComponent(&hActor.ActorProxyComponent{})
 
+	this.Root().AddComponent((&ModleComponent{}))
+
 	//添加组件到待选组件列表，默认添加master,child组件
 	this.AddComponentGroup("master", []hEcs.IComponent{&hCluster.MasterComponent{}})
 	this.AddComponentGroup("child", []hEcs.IComponent{&hCluster.ChildComponent{}})

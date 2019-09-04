@@ -2,9 +2,18 @@ package components
 
 import (
 	"../../hActor"
+	"../../hBaseComponent"
 	"../../hECS"
-	"fmt"
+	"../../hLog"
+	//"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
+
+type UserInfo struct {
+	ID       bson.ObjectId `bson:"_id"`
+	NickName string        `bson:"username"`
+	Lv       int           `bson:lv`
+}
 
 /*
 type LoginMessage struct {
@@ -26,8 +35,54 @@ func (this *LoginComponent) Awake(ctx *hEcs.Context) {
 	this.AddHandler(Service_Login_Login, this.Login, true)
 }
 
-func (this *LoginComponent) Login(message *hActor.ActorMessageInfo) error {
-	fmt.Println("登录组件收到的数据", message.Message.Data[0])
+func (this *LoginComponent) Start(ctx *hEcs.Context) {
+	hLog.Debug("Startlllllllllll")
 
-	return message.Reply("我收到了消息")
+	/*
+		这个是插入的逻辑
+		err := hBaseComponent.Modle.M.Insert("users", &UserInfo{
+			ID:       bson.NewObjectId(),
+			NickName: "小熊",
+			Lv:       1,
+		})
+		if err != nil {
+			hLog.Info("插入用户失败")
+			//message.Reply("插入用户失败")
+		}
+	*/
+
+	/*
+		查找返回的结果
+			map[_id:ObjectIdHex("5d6f8dcde9c4c182be64bad9") lv:1 username:小熊]
+		方式一
+		hBaseComponent.Modle.M.DBFindOne("users", bson.M{"username": "小熊"}, func(a bson.M) error {
+			if a != nil {
+				hLog.Info(a)
+				return nil
+			} else {
+				hLog.Error("FineOne err")
+				return errors.New("FineOne err")
+			}
+		})
+
+		方式二:
+		a := &UserInfo{}
+		hBaseComponent.Modle.M.FindOne("users", bson.M{"username": "小熊"}, a)
+		hLog.Info("xxxxxxxx", a)
+
+	*/
+
+}
+
+func (this *LoginComponent) Login(message *hActor.ActorMessageInfo) error {
+	err := hBaseComponent.Modle.M.Insert("test", &UserInfo{
+		ID:       bson.NewObjectId(),
+		NickName: "小熊",
+		Lv:       1,
+	})
+	if err != nil {
+		hLog.Info("插入用户失败")
+		message.Reply("插入用户失败")
+	}
+	return message.Reply("插入用户成功")
 }

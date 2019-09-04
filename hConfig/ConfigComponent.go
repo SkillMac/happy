@@ -1,6 +1,7 @@
 package hConfig
 
 import (
+	"../hDataBase/mongo"
 	"../hECS"
 	"../hLog"
 	"encoding/json"
@@ -21,7 +22,7 @@ type ConfigComponent struct {
 	customConfigPath  string
 	CommonConfig      *CommonConfig
 	ClusterConfig     *ClusterConfig
-	CustomConfig      interface{}
+	CustomConfig      *CustomConfig
 }
 
 func (this *ConfigComponent) IsUnique() int {
@@ -31,6 +32,7 @@ func (this *ConfigComponent) IsUnique() int {
 func (this *ConfigComponent) Initialize() error {
 	this.commonConfigPath = "./conf/CommonConfig.json"
 	this.clusterConfigPath = "./conf/ClusterConfig.json"
+	this.customConfigPath = "./conf/CustomeConfig.json"
 	//初始化默认配置
 	this.SetDefault()
 	//读取配置文件
@@ -88,6 +90,7 @@ func (this *ConfigComponent) ReloadConfig() {
 	}
 }
 
+// 没有被使用
 // config.CustomConfig[name] = structure
 func (this *ConfigComponent) LoadCustomConfig(path string, structure interface{}) (err error) {
 	kind := reflect.TypeOf(structure).Kind()
@@ -96,7 +99,7 @@ func (this *ConfigComponent) LoadCustomConfig(path string, structure interface{}
 		return
 	}
 	err = this.loadConfig(path, structure)
-	this.CustomConfig = structure
+	this.CustomConfig = nil
 	this.customConfigPath = path
 	return err
 }
@@ -115,7 +118,6 @@ func (this *ConfigComponent) SetDefault() {
 		LogFileSizeMax:  10, // 这里默认单位设置成了 MB
 		LogConsolePrint: true,
 	}
-	this.CustomConfig = nil
 	this.ClusterConfig = &ClusterConfig{
 		MasterAddress: "127.0.0.1:6666",
 		LocalAddress:  "127.0.0.1:6666",
@@ -150,6 +152,16 @@ func (this *ConfigComponent) SetDefault() {
 		NetListenAddress: "127.0.0.1:5555",
 
 		//IsActorModel: true,
+	}
+
+	this.CustomConfig = &CustomConfig{
+		Mongo: mongo.DbCfg{
+			DbHost: "",
+			DbPort: 0,
+			DbName: "",
+			DbUser: "",
+			DbPass: "",
+		},
 	}
 }
 
@@ -190,4 +202,8 @@ type ClusterConfig struct {
 	//外网
 	NetConnTimeout   int    //外网链接超时
 	NetListenAddress string //网关对外服务地址
+}
+
+type CustomConfig struct {
+	Mongo mongo.DbCfg
 }

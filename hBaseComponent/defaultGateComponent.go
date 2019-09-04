@@ -80,9 +80,9 @@ func (this *DefaultGateComponent) OnDropped(sess *hNet.Session) {
 	this.NetAPI.OnDisconnect(sess)
 }
 
-func (this *DefaultGateComponent) Destroy() error {
+func (this *DefaultGateComponent) Destroy(ctx *hEcs.Context) {
+	hLog.Info("服务器关闭  Shutdown")
 	this.server.Shutdown()
-	return nil
 }
 
 func (this *DefaultGateComponent) SendMessage(sid string, message interface{}) error {
