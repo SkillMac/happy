@@ -166,11 +166,12 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 */
 
 type innerMatchPlayer struct {
-	sid       string
-	lv        int
-	session   *hNet.Session
-	other     *innerMatchPlayer
-	isSuccess chan bool
+	sid         string            // 回话ID
+	lv          int               // 玩家的等级
+	session     *hNet.Session     // 存储回话引用
+	other       *innerMatchPlayer // 要对战的玩家
+	isSuccess   chan bool         // 是否被别人匹配
+	isShootBall bool              // 是够首先发球
 }
 
 /**
@@ -191,6 +192,7 @@ func (this *LogicApi) MatchRule(p1 *innerMatchPlayer, p2 *innerMatchPlayer) bool
 
 func (this *LogicApi) MatchSuccess(p1 *innerMatchPlayer, p2 *innerMatchPlayer) {
 	this.rwLock.Lock()
+	p1.isShootBall = true
 	p1.other = p2
 	p2.other = p1
 	delete(this.matchSessionMap, p1.sid)
@@ -212,6 +214,7 @@ func (this *LogicApi) MatchTimer(curMatchPlayer *innerMatchPlayer, chanOther cha
 					timer.Stop()
 					this.rwLock.Lock()
 					delete(this.matchSessionMap, curMatchPlayer.sid)
+					curMatchPlayer.isShootBall = true
 					this.rwLock.Unlock()
 					other = &innerMatchPlayer{
 						sid:     "机器人",
@@ -253,7 +256,7 @@ func (this *LogicApi) MatchTimer(curMatchPlayer *innerMatchPlayer, chanOther cha
 		}
 	}
 Loop:
-	hLog.Debug("OOOOOOO 哈哈哈哈哈哈哈哈")
+	hLog.Info("OOOOOOO 哈哈哈哈哈哈哈哈")
 	chanOther <- other
 }
 
@@ -264,9 +267,11 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 			Statue: CODE_OK,
 			Msg:    "",
 		}, components.MatchPlayInfo{
-			NickName: "",
-			HeadUrl:  "",
-			Lv:       0,
+			NickName:    "",
+			HeadUrl:     "",
+			Lv:          0,
+			IsShootBall: false,
+			RoomId:      -1,
 		},
 	}
 
@@ -287,11 +292,12 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	this.rwLock.Lock()
 	if _, ok := this.matchSessionMap[session.Id]; !ok {
 		this.matchSessionMap[session.Id] = &innerMatchPlayer{
-			sid:       session.Id,
-			lv:        lv.(int),
-			session:   session,
-			isSuccess: make(chan bool),
-			other:     nil,
+			sid:         session.Id,
+			lv:          lv.(int),
+			session:     session,
+			isSuccess:   make(chan bool),
+			other:       nil,
+			isShootBall: false,
 		}
 		this.chanMatchPlay[session.Id] = make(chan *innerMatchPlayer)
 	} else {
@@ -313,7 +319,8 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	session.SetProperty("OtherPlayer", otherPlayer.session)
 	r.NickName = otherPlayer.sid
 	r.Lv = otherPlayer.lv
-	r.HeadUrl = "https://www.baidu.com"
+	r.HeadUrl = "https://wx.qlogo.cn/mmopen/vi_32/mtFonGxkxLZwLC31ibZJJuMWicfy4XGhazGBEic2Db8OH2JEmosEDRvyq0EEOx5uKqT1eTU8uk3qYRpvkzlsTA5Ig/132"
+	r.IsShootBall = this.matchSessionMap[session.Id].isShootBall
 	this.rwLock.Lock()
 	close(this.chanMatchPlay[session.Id])
 	delete(this.chanMatchPlay, session.Id)
@@ -370,7 +377,7 @@ func (this *LogicApi) CreateRoom(session *hNet.Session, message *CreateRoomMessa
 
 	reply, err := serviceCaller.Call("room", components.Service_RoomManager_NewRoom, session.Id, "")
 	if err != nil {
-		hLog.Debug(err)
+		hLog.Error(err)
 		errReply("匹配 呼叫 房间服务器创建房间的函数失败")
 		return
 	}
