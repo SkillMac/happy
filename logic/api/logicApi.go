@@ -120,12 +120,12 @@ func BindJson(body io.ReadCloser, retMap interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("bodybuf : %v", bodybuf)
 	json.Unmarshal(bodybuf, &retMap)
 	return nil
 }
 
 func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
+	hLog.Info("message  ", message)
 	errReply := func(msg string) {
 		r := &CommonResMessage{
 			Statue: CODE_ERROR,
@@ -140,11 +140,10 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 		return
 	}
 
-	fmt.Println("message   v  \n", message)
 	wxInfo := ""
 	if message.JsCode != "123" {
 		wxInfo, err := loginWX(message.JsCode)
-		fmt.Println("wxInfo,err:", wxInfo, err)
+		hLog.Info("wxInfo,err=====>", wxInfo, err)
 	} else {
 		wxInfo = "openid111111111111111"
 	}
@@ -154,8 +153,10 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 		hLog.Debug(err)
 		errReply("登录失败服务器登录节40013点异常")
 		return
+	} else {
+		sess.SetProperty("userInfo", message)
 	}
-	fmt.Printf("reply %v", reply)
+	hLog.Info("reply=====>", reply)
 	this.Reply(sess, &LoginResMessage{
 		Statue: CODE_OK,
 		Msg:    reply[0].(string),
@@ -460,6 +461,40 @@ func (this *LogicApi) JoinRoom(session *hNet.Session, message *JoinRoomMessage) 
 	if !session.IsClose() {
 		this.Reply(session, r)
 	}
+}
+
+func (this *LogicApi) deleteRoom(session *hNet.Session, message *DeleteRoomMessage) {
+	r := &DeleteRoomResMessage{
+		CommonResMessage{
+			Statue: CODE_OK,
+			Msg:    "",
+		},
+	}
+	errReply := func(msg string) {
+		r.Statue = CODE_ERROR
+		r.Msg = msg
+		hLog.Info(msg)
+		this.Reply(session, r)
+	}
+	serviceCaller, err := this.Upgrade(session)
+	if err != nil {
+		errReply("服务器 JoinRoom 回话转换失败")
+		return
+	}
+
+	roomId := message.RoomId
+
+	reply, err := serviceCaller.Call("room", components.Service_RoomManager_deleteRoom, roomId, session.Id)
+	if err != nil {
+		hLog.Info(err)
+		errReply("匹配 呼叫 房间服务器删除房间的函数失败")
+		return
+	}
+	r.Msg = reply[1].(string)
+	if !session.IsClose() {
+		this.Reply(session, r)
+	}
+
 }
 
 /**errReply

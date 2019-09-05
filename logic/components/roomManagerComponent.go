@@ -91,3 +91,17 @@ func (this *RoomManagerComponent) JoinRoom(message *hActor.ActorMessageInfo) err
 	}
 	return nil
 }
+
+var Service_RoomManager_deleteRoom = "deleteRoom"
+
+func (this *RoomManagerComponent) deleteRoom(message *hActor.ActorMessageInfo) error {
+	roomId := message.Message.Data[0].(int)
+	a, err := this.roomRoot.FindObject(string(roomId))
+	//a.RemoveObject(a)
+	err = a.Destroy()
+	if err != nil {
+		return err
+	}
+	this.roomNumDecr()
+	return message.Reply("删除成功")
+}

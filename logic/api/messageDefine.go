@@ -57,6 +57,15 @@ type JoinRoomResMessage struct {
 	CommonResMessage
 }
 
+// 删除房间
+type DeleteRoomMessage struct {
+	RoomId int
+}
+type DeleteRoomResMessage struct {
+	CommonResMessage
+}
+
+
 // 同步的函数
 type vec2 struct {
 	X float32
@@ -87,4 +96,7 @@ var Id2mt = map[reflect.Type]uint32{
 	reflect.TypeOf(&JoinRoomResMessage{}):   10,
 	reflect.TypeOf(&SyncMessage{}):          11,
 	reflect.TypeOf(&SyncResMessage{}):       12,
+	reflect.TypeOf(&DeleteRoomMessage{}):       13,
+	reflect.TypeOf(&DeleteRoomMessage{}):       14,
+
 }

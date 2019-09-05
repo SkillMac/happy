@@ -4,9 +4,11 @@ import (
 	"../../hActor"
 	"../../hBaseComponent"
 	"../../hECS"
-	"../../hLog"
+	"fmt"
+
 	//"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"../../hLog"
 )
 
 type UserInfo struct {
@@ -76,17 +78,24 @@ func (this *LoginComponent) Awake(ctx *hEcs.Context) {
 //}
 
 func (this *LoginComponent) Login(message *hActor.ActorMessageInfo) error {
-
-	err := hBaseComponent.Modle.M.Insert("users", &UserInfo{
-		ID:       bson.NewObjectId(),
-		NickName: message.Message.Data[0].(string),
-		HeadUrl:  message.Message.Data[1].(string),
-		Lv:       1,
-	})
+	userInfo := &UserInfo{}
+	fmt.Println("message.Message.Data[0]",message.Message.Data[0])
+	err := hBaseComponent.Modle.M.FindOne("users", bson.M{"username": message.Message.Data[0]}, userInfo)
 	if err != nil {
-		hLog.Info("插入用户失败")
-		message.Reply("插入用户失败")
+		message.Reply("没有该用户,创建新用户")
+		err := hBaseComponent.Modle.M.Insert("users", &UserInfo{
+			ID:       bson.NewObjectId(),
+			NickName: message.Message.Data[0].(string),
+			HeadUrl:  message.Message.Data[1].(string),
+			Lv:       1,
+		})
+		if err != nil {
+			return message.Reply("插入用户失败")
+		} else {
+			return message.Reply("插入用户成功")
+		}
+	} else {
+		hLog.Info("userInfo====>",userInfo)
+		return message.Reply("查找用户成功")
 	}
-	return message.Reply("插入用户成功")
-
 }

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var addr = flag.String("addr", "127.0.0.1:5555", "http service address")
+var addr = flag.String("addr", "192.168.1.233:5555", "http service address")
 
 func main() {
 	flag.Parse()
@@ -46,7 +46,7 @@ func main() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
-	var message = "{\"Nickname\":\"HHHH\",\"HeadUrl\":\"www.baidu.com\"}"
+	var message = "{\"Nickname\":\"小熊\",\"HeadUrl\":\"www.baidu.com\"}"
 	messageType := uint32(3)
 	msg := make([]byte, 4)
 	msg = append(msg, []byte(message)...)
