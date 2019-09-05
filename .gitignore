@@ -2,3 +2,5 @@
 **/.DS_Store
 log/
 logic/log/
+logic/conf
+conf/
