@@ -384,9 +384,7 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	r.RoomId = otherPlayer.roomId
 
 	fmt.Println("发送数据", session.IsClose())
-	if !session.IsClose() {
-		this.Reply(session, r)
-	}
+	this.Reply(session, r)
 }
 
 /**
@@ -423,9 +421,7 @@ func (this *LogicApi) CreateRoom(session *hNet.Session, message *CreateRoomMessa
 
 	r.RoomId = reply[0].(int)
 
-	if !session.IsClose() {
-		this.Reply(session, r)
-	}
+	this.Reply(session, r)
 }
 
 func (this *LogicApi) JoinRoom(session *hNet.Session, message *JoinRoomMessage) {
@@ -458,9 +454,8 @@ func (this *LogicApi) JoinRoom(session *hNet.Session, message *JoinRoomMessage) 
 		return
 	}
 	r.Msg = reply[1].(string)
-	if !session.IsClose() {
-		this.Reply(session, r)
-	}
+
+	this.Reply(session, r)
 }
 
 func (this *LogicApi) deleteRoom(session *hNet.Session, message *DeleteRoomMessage) {
@@ -491,9 +486,7 @@ func (this *LogicApi) deleteRoom(session *hNet.Session, message *DeleteRoomMessa
 		return
 	}
 	r.Msg = reply[1].(string)
-	if !session.IsClose() {
-		this.Reply(session, r)
-	}
+	this.Reply(session, r)
 
 }
 

@@ -150,7 +150,9 @@ func (this *ApiBase) Reply(sess *Session, message interface{}) {
 		if err != nil {
 			panic(err)
 		}
-		panic(sess.Emit(id, m))
+		if !sess.IsClose() {
+			panic(sess.Emit(id, m))
+		}
 	}
 }
 

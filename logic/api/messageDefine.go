@@ -65,17 +65,18 @@ type DeleteRoomResMessage struct {
 	CommonResMessage
 }
 
-
 // 同步的函数
 type vec2 struct {
 	X float32
 	Y float32
 }
 type SyncMessage struct {
-	Pos           vec2
-	Rotation      float32
-	BallLineSpeed vec2
-	BallPos       vec2
+	Pos           vec2    // 玩家的位置
+	Rotation      float32 // 玩家的旋转角度
+	BallLineSpeed vec2    // 球的线速度
+	BallPos       vec2    // 球的位置
+	BallParent    string  // 球客户端的父节点
+	Touch         bool    // 被发球方 是否触摸屏幕
 }
 
 type SyncResMessage struct {
@@ -96,7 +97,6 @@ var Id2mt = map[reflect.Type]uint32{
 	reflect.TypeOf(&JoinRoomResMessage{}):   10,
 	reflect.TypeOf(&SyncMessage{}):          11,
 	reflect.TypeOf(&SyncResMessage{}):       12,
-	reflect.TypeOf(&DeleteRoomMessage{}):       13,
-	reflect.TypeOf(&DeleteRoomMessage{}):       14,
-
+	reflect.TypeOf(&DeleteRoomMessage{}):    13,
+	reflect.TypeOf(&DeleteRoomMessage{}):    14,
 }

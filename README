@@ -11,3 +11,7 @@ launcher.AddComponentGroup("login", []hEcs.IComponent{&logicComponents.LoginComp
 reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, message.Nickname)
 ```
 最后一个参数不允许传递结构体过去, 只能是常用的数据类型
+
+## 是否判断会话关闭
+
+这里不需要在判断 会话关闭了 将这个判断移交到了框架里面
