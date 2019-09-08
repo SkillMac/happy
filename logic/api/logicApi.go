@@ -313,6 +313,7 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 			Lv:          0,
 			IsShootBall: false,
 			RoomId:      -1,
+			CrystalInfo: "",
 		},
 	}
 
@@ -380,7 +381,8 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	close(this.chanMatchPlay[session.Id])
 	delete(this.chanMatchPlay, session.Id)
 	this.rwLock.Unlock()
-
+	r.CrystalInfo =r.MatchCrystalInfo()
+	fmt.Println("MatchCrystalInfo 11111111111111111111111", r.MatchCrystalInfo())
 	r.RoomId = otherPlayer.roomId
 
 	fmt.Println("发送数据", session.IsClose())
