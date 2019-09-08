@@ -212,6 +212,7 @@ func (this *LogicApi) MatchSuccess(p1 *innerMatchPlayer, p2 *innerMatchPlayer, c
 			Lv:          0,
 			IsShootBall: false,
 			RoomId:      -1,
+			CrystalInfo: "",
 		},
 	}
 	reply, err := caller.Call("room", components.Service_RoomManager_NewRoom, p1.sid, p2.sid)
@@ -382,7 +383,7 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	delete(this.chanMatchPlay, session.Id)
 	this.rwLock.Unlock()
 	r.CrystalInfo =r.MatchCrystalInfo()
-	fmt.Println("MatchCrystalInfo 11111111111111111111111", r.MatchCrystalInfo())
+	//fmt.Println("MatchCrystalInfo 11111111111111111111111", r.MatchCrystalInfo())
 	r.RoomId = otherPlayer.roomId
 
 	fmt.Println("发送数据", session.IsClose())
