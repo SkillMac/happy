@@ -12,6 +12,8 @@ type RoomManagerComponent struct {
 	roomNum  int // 这一块后面会修改
 }
 
+
+
 func (this *RoomManagerComponent) Awake(ctx *hEcs.Context) {
 	this.rooms = make(map[int]*RoomComponent)
 	// 创建房间管理器根节点
@@ -33,6 +35,10 @@ func (this *RoomManagerComponent) roomNumDecr() {
 	this.roomNum--
 }
 
+
+
+
+
 var Service_RoomManager_NewRoom = "NewRoom"
 
 func (this *RoomManagerComponent) NewRoom(message *hActor.ActorMessageInfo) error {
@@ -49,7 +55,8 @@ func (this *RoomManagerComponent) NewRoom(message *hActor.ActorMessageInfo) erro
 	r.Sid = &[]string{sid1, sid2}
 	this.rooms[id] = r
 	this.Locker.Unlock()
-	return message.Reply(r.RoomID)
+
+	return message.Reply(r.RoomID,r.CrystalInfo())
 }
 
 var Service_RoomManager_JoinRoom = "JoinRoom"

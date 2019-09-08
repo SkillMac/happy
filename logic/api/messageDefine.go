@@ -46,6 +46,7 @@ type CreateRoomMessage struct {
 type CreateRoomResMessage struct {
 	CommonResMessage
 	RoomId int
+	CrystalInfo interface {}
 }
 
 // 加入房间

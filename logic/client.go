@@ -47,7 +47,7 @@ func main() {
 	defer ticker.Stop()
 
 	var message = "{\"Nickname\":\"小熊\",\"HeadUrl\":\"www.baidu.com\"}"
-	messageType := uint32(3)
+	messageType := uint32(5)
 	msg := make([]byte, 4)
 	msg = append(msg, []byte(message)...)
 	binary.BigEndian.PutUint32(msg[:4], messageType)

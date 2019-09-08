@@ -358,7 +358,7 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	go this.MatchTimer(this.matchSessionMap[session.Id], this.chanMatchPlay[session.Id], serviceCaller)
 	otherPlayer := <-this.chanMatchPlay[session.Id]
 
-	if otherPlayer.roomId == -1 {
+	if otherPlayer.roomId == -1 && otherPlayer.sid != "机器人" {
 		errReply("Match 匹配服务器 房间创建失败")
 		return
 	}
@@ -398,6 +398,7 @@ func (this *LogicApi) CreateRoom(session *hNet.Session, message *CreateRoomMessa
 			Msg:    "",
 		},
 		-1,
+		"",
 	}
 
 	errReply := func(msg string) {
@@ -420,7 +421,7 @@ func (this *LogicApi) CreateRoom(session *hNet.Session, message *CreateRoomMessa
 	}
 
 	r.RoomId = reply[0].(int)
-
+	r.CrystalInfo = reply[1].(interface{})
 	this.Reply(session, r)
 }
 
@@ -525,7 +526,7 @@ func (this *LogicApi) SyncData(session *hNet.Session, message *SyncMessage) {
 	*/
 	otherS, ok := session.GetProperty("OtherPlayer")
 	if !ok {
-		hLog.Info("同步数据 敌方玩家 回话获取失败")
+		//hLog.Info("同步数据 敌方玩家 回话获取失败")
 		errReply("同步数据 敌方玩家 回话获取失白")
 		return
 	}
