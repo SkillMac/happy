@@ -176,6 +176,7 @@ type innerMatchPlayer struct {
 	isShootBall bool              // 是够首先发球
 	isMatched   bool              // 是否别人匹配
 	roomId      int               // 房间ID
+	CrystalInfo interface{}       //房间水晶
 }
 
 /**
@@ -226,7 +227,8 @@ func (this *LogicApi) MatchSuccess(p1 *innerMatchPlayer, p2 *innerMatchPlayer, c
 	roomId := reply[0].(int)
 	p1.roomId = roomId
 	p2.roomId = roomId
-
+	p1.CrystalInfo = reply[1]
+	p2.CrystalInfo = reply[1]
 	flagP := this.generateRangeNum(1, 100) > 50
 	p1.isShootBall = flagP
 	p2.isShootBall = !flagP
@@ -261,7 +263,9 @@ func (this *LogicApi) MatchTimer(curMatchPlayer *innerMatchPlayer, chanOther cha
 						isShootBall: false,
 						isMatched:   false,
 						roomId:      -1,
+						CrystalInfo: "",
 					}
+					//this.MatchSuccess(curMatchPlayer, other, caller)
 					hLog.Debug("匹配超时")
 					goto Loop
 				}
@@ -343,6 +347,7 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 			isShootBall: false,
 			isMatched:   false,
 			roomId:      -1,
+			CrystalInfo: "",
 		}
 		this.chanMatchPlay[session.Id] = make(chan *innerMatchPlayer)
 	} else {
@@ -382,11 +387,11 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	close(this.chanMatchPlay[session.Id])
 	delete(this.chanMatchPlay, session.Id)
 	this.rwLock.Unlock()
-	r.CrystalInfo =r.MatchCrystalInfo()
-	//fmt.Println("MatchCrystalInfo 11111111111111111111111", r.MatchCrystalInfo())
 	r.RoomId = otherPlayer.roomId
-
-	fmt.Println("发送数据", session.IsClose())
+	r.CrystalInfo = otherPlayer.CrystalInfo
+	if otherPlayer.sid == "机器人" {
+		r.CrystalInfo = r.MatchCrystalInfo()
+	}
 	this.Reply(session, r)
 }
 
@@ -535,8 +540,7 @@ func (this *LogicApi) SyncData(session *hNet.Session, message *SyncMessage) {
 	}
 
 	otherSession := otherS.(*hNet.Session)
-
-	if !otherSession.IsClose() {
+	if otherSession != nil && !otherSession.IsClose() {
 		this.Reply(otherSession, r)
 	} else {
 		errReply("对方掉线")

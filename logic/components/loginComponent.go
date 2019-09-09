@@ -4,11 +4,9 @@ import (
 	"../../hActor"
 	"../../hBaseComponent"
 	"../../hECS"
-	"fmt"
-
+	"../../hLog"
 	//"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"../../hLog"
 )
 
 type UserInfo struct {
@@ -79,7 +77,7 @@ func (this *LoginComponent) Awake(ctx *hEcs.Context) {
 
 func (this *LoginComponent) Login(message *hActor.ActorMessageInfo) error {
 	userInfo := &UserInfo{}
-	fmt.Println("message.Message.Data[0]",message.Message.Data[0])
+	hLog.Info("message.Message.Data[0]",message.Message.Data[0])
 	err := hBaseComponent.Modle.M.FindOne("users", bson.M{"username": message.Message.Data[0]}, userInfo)
 	if err != nil {
 		message.Reply("没有该用户,创建新用户")

@@ -45,8 +45,8 @@ type CreateRoomMessage struct {
 
 type CreateRoomResMessage struct {
 	CommonResMessage
-	RoomId int
-	CrystalInfo interface {}
+	RoomId      int
+	CrystalInfo interface{}
 }
 
 // 加入房间
@@ -71,6 +71,12 @@ type vec2 struct {
 	X float32
 	Y float32
 }
+
+//type SyncCrystal struct {
+//	Enemy  interface{}
+//	Player interface{}
+//	Broken interface{}
+//}
 type SyncMessage struct {
 	Pos           vec2    // 玩家的位置
 	Rotation      float32 // 玩家的旋转角度
@@ -78,7 +84,10 @@ type SyncMessage struct {
 	BallPos       vec2    // 球的位置
 	BallParent    string  // 球客户端的父节点
 	Touch         bool    // 被发球方 是否触摸屏幕
+	Broken        interface{}
+	//CrystalInfo   SyncCrystal
 }
+
 
 type SyncResMessage struct {
 	CommonResMessage
@@ -99,5 +108,5 @@ var Id2mt = map[reflect.Type]uint32{
 	reflect.TypeOf(&SyncMessage{}):          11,
 	reflect.TypeOf(&SyncResMessage{}):       12,
 	reflect.TypeOf(&DeleteRoomMessage{}):    13,
-	reflect.TypeOf(&DeleteRoomMessage{}):    14,
+	reflect.TypeOf(&DeleteRoomResMessage{}): 14,
 }

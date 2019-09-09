@@ -33,18 +33,27 @@ func (this *MatchPlayInfo) MatchCrystalInfo() []matchCrystalInfo {
 		Shape:  0,
 		Sizeof: 0,
 	}
-	totalNum := RandNumScope(5, 8)   //方块总数
+	totalNum := RandNumScope(5, 8+1) //方块总数
 	idNum := 0                       //实际方块数
 	rand.Seed(time.Now().UnixNano()) //设置随机数种子
 	for {
+	loop:
 		if idNum == totalNum {
 			break
 		}
-		crystall.Id = RandNum(8)
-		crystall.Num = RandNum(3)
-		crystall.Angle = RandNum(360)
-		crystall.Shape = RandNum(3)
-		crystall.Sizeof = RandNum(3)
+		id := RandNum(8 + 1)
+
+		for _, val := range slice {
+			//fmt.Println("id,val.id=== ", id, val.id)
+			if id == val.Id {
+				goto loop
+			}
+		}
+		crystall.Id = id
+		crystall.Num = RandNum(3 + 1)
+		crystall.Angle = RandNum(360 + 1)
+		crystall.Shape = RandNum(3 + 1)
+		crystall.Sizeof = RandNum(3 + 1)
 		slice = append(slice, *crystall)
 		idNum++
 	}

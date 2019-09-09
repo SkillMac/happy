@@ -56,7 +56,7 @@ func (this *RoomManagerComponent) NewRoom(message *hActor.ActorMessageInfo) erro
 	this.rooms[id] = r
 	this.Locker.Unlock()
 	r.RoomCrystalInfo  = r.CrystalInfo()
-	return message.Reply(r.RoomID,r.RoomCrystalInfo )
+	return message.Reply(r.RoomID,r.RoomCrystalInfo)
 }
 
 var Service_RoomManager_JoinRoom = "JoinRoom"
