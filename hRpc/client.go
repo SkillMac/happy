@@ -5,8 +5,8 @@
 package rpc
 
 import (
-	"../hLog"
-	"../hTimer"
+	"custom/happy/hLog"
+	"custom/happy/hTimer"
 	"bufio"
 	"encoding/gob"
 	"errors"

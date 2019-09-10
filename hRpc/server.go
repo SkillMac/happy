@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"../hLog"
+	"custom/happy/hLog"
 	"bufio"
 	"encoding/gob"
 	"errors"
