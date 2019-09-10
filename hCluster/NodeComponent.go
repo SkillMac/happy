@@ -1,10 +1,10 @@
 package hCluster
 
 import (
-	"../hConfig"
-	"../hECS"
-	"../hLog"
-	"../hRpc"
+	"custom/happy/hConfig"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
+	"custom/happy/hRpc"
 	"errors"
 	"fmt"
 	"math/rand"

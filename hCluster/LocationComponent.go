@@ -1,9 +1,9 @@
 package hCluster
 
 import (
-	"../hConfig"
-	"../hECS"
-	"../hRpc"
+	"custom/happy/hConfig"
+	"custom/happy/hECS"
+	"custom/happy/hRpc"
 	"errors"
 	"reflect"
 	"sync"

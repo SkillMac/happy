@@ -1,9 +1,9 @@
 package hCommon
 
 import (
-	"../hLog"
 	"bytes"
 	"crypto/md5"
+	"custom/happy/hLog"
 	"encoding/hex"
 	"errors"
 	"reflect"

@@ -1,7 +1,7 @@
 package hCommon
 
 import (
-	"../hLog"
+	"custom/happy/hLog"
 	"errors"
 	"runtime/debug"
 )

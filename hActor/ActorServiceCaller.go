@@ -1,7 +1,7 @@
 package hActor
 
 import (
-	"../hNet"
+	"custom/happy/hNet"
 	"sync"
 )
 

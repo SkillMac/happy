@@ -1,14 +1,14 @@
 package hEcs
 
 import (
-	"../hLog"
+	"custom/happy/hLog"
 	"errors"
 	"fmt"
 	"sync"
 	"time"
 
-	"../hCommon/iter"
-	"../hCommon/threadpool"
+	"custom/happy/hCommon/iter"
+	"custom/happy/hCommon/threadpool"
 )
 
 type Config struct {

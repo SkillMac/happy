@@ -1,7 +1,7 @@
 package threadpool
 
 import (
-	"../../hLog"
+	"custom/happy/hLog"
 	"errors"
 	"runtime/debug"
 	"sync"

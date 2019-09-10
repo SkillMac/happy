@@ -1,7 +1,7 @@
 package hCluster
 
 import (
-	"../hRpc"
+	"custom/happy/hRpc"
 	"errors"
 	"math/rand"
 )

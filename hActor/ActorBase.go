@@ -1,8 +1,8 @@
 package hActor
 
 import (
-	"../hECS"
-	"../hLog"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
 )
 
 type ActorBase struct {

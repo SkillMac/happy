@@ -1,8 +1,8 @@
 package hCluster
 
 import (
-	"../hECS"
-	"../hLog"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
 	"fmt"
 )
 

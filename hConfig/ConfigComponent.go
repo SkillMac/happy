@@ -1,9 +1,9 @@
 package hConfig
 
 import (
-	"../hDataBase/mongo"
-	"../hECS"
-	"../hLog"
+	"custom/happy/hDataBase/mongo"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
 	"encoding/json"
 	"errors"
 	"io/ioutil"

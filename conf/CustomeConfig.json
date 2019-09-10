@@ -1,9 +1,0 @@
-{
-    "Mongo": {
-        "DbHost": "101.200.51.151",
-        "DbPort": 27000,
-        "DbName": "test",
-        "DbUser": "test1",
-        "DbPass": "test1"
-    }
-}

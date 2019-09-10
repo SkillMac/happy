@@ -1,11 +1,11 @@
 package hBaseComponent
 
 import (
-	"../hCluster"
-	"../hConfig"
-	"../hDataBase/mongo"
-	"../hECS"
-	"../hLog"
+	"custom/happy/hCluster"
+	"custom/happy/hConfig"
+	"custom/happy/hDataBase/mongo"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
 	"gopkg.in/mgo.v2"
 	"reflect"
 	"time"

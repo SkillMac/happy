@@ -1,9 +1,9 @@
 package hEcs
 
 import (
-	"../hCommon"
-	"../hCommon/iter"
-	"../hLog"
+	"custom/happy/hCommon"
+	"custom/happy/hCommon/iter"
+	"custom/happy/hLog"
 	"errors"
 	"fmt"
 	"reflect"

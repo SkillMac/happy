@@ -1,10 +1,10 @@
 package hActor
 
 import (
-	"../hConfig"
-	"../hECS"
-	"../hLog"
-	"../hTimer"
+	"custom/happy/hConfig"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
+	"custom/happy/hTimer"
 	"errors"
 	"reflect"
 	"runtime/debug"

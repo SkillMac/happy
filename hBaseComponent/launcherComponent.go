@@ -1,13 +1,13 @@
 package hBaseComponent
 
 import (
-	"../hActor"
-	"../hCluster"
-	"../hConfig"
-	"../hECS"
-	"../hLog"
-	"../hRpc"
-	"../hTimer"
+	"custom/happy/hActor"
+	"custom/happy/hCluster"
+	"custom/happy/hConfig"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
+	"custom/happy/hRpc"
+	"custom/happy/hTimer"
 	"errors"
 	"fmt"
 	"os"
@@ -69,6 +69,7 @@ func (this *LauncherComponent) Serve() {
 	//添加ActorProxy组件，组织节点间的通信
 	this.Root().AddComponent(&hActor.ActorProxyComponent{})
 
+	//添加数据库连接组件, 用于数据库的连接
 	this.Root().AddComponent((&ModleComponent{}))
 
 	//添加组件到待选组件列表，默认添加master,child组件

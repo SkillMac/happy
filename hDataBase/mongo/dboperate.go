@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"../../hLog"
+	"custom/happy/hLog"
 	"errors"
 	"fmt"
 	"gopkg.in/mgo.v2"

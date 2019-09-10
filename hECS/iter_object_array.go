@@ -1,8 +1,8 @@
 package hEcs
 
 import (
-	"../hCommon/iter"
 	"container/list"
+	"custom/happy/hCommon/iter"
 )
 
 // ObjectIter implements Iterator for []Object

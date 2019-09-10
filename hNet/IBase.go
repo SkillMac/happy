@@ -1,8 +1,8 @@
 package hNet
 
 import (
-	"../hECS"
 	"context"
+	"custom/happy/hECS"
 )
 
 type IHander interface {

@@ -1,9 +1,9 @@
 package hNet
 
 import (
-	"../hCommon"
-	"../hECS"
-	"../hLog"
+	"custom/happy/hCommon"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
 	"errors"
 	"fmt"
 	"reflect"

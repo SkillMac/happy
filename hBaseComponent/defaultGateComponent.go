@@ -1,11 +1,11 @@
 package hBaseComponent
 
 import (
-	"../hCluster"
-	"../hConfig"
-	"../hECS"
-	"../hLog"
-	"../hNet"
+	"custom/happy/hCluster"
+	"custom/happy/hConfig"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
+	"custom/happy/hNet"
 	"errors"
 	"fmt"
 	"reflect"

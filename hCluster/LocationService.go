@@ -1,6 +1,6 @@
 package hCluster
 
-import "../hLog"
+import "custom/happy/hLog"
 
 type LocationService struct {
 	location *LocationComponent

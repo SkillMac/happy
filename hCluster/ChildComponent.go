@@ -1,11 +1,11 @@
 package hCluster
 
 import (
-	"../hCommon"
-	"../hConfig"
-	"../hECS"
-	"../hLog"
-	"../hRpc"
+	"custom/happy/hCommon"
+	"custom/happy/hConfig"
+	"custom/happy/hECS"
+	"custom/happy/hLog"
+	"custom/happy/hRpc"
 	"fmt"
 	"reflect"
 	"strings"

@@ -1,8 +1,8 @@
 package threadpool
 
 import (
-	"../../hLog"
 	"container/list"
+	"custom/happy/hLog"
 	"fmt"
 	"runtime/debug"
 	"sync"

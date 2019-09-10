@@ -1,8 +1,8 @@
 package happy
 
 import (
-	"./hBaseComponent"
-	"./hECS"
+	"custom/happy/hBaseComponent"
+	"custom/happy/hECS"
 	"runtime"
 	"time"
 )
