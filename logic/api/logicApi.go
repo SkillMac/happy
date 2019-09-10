@@ -177,6 +177,7 @@ type innerMatchPlayer struct {
 	isMatched   bool              // 是否别人匹配
 	roomId      int               // 房间ID
 	CrystalInfo interface{}       //房间水晶
+	kind        int               // 标注是否是真人 0 为机器人  1为真人
 }
 
 /**
@@ -197,6 +198,8 @@ func (this *LogicApi) MatchRule(p1 *innerMatchPlayer, p2 *innerMatchPlayer) bool
 
 func (this *LogicApi) MatchSuccess(p1 *innerMatchPlayer, p2 *innerMatchPlayer, caller *hActor.ActorServiceCaller) {
 	this.rwLock.Lock()
+	p1.kind = 1
+	p2.kind = 1
 	p1.other = p2
 	p2.other = p1
 	delete(this.matchSessionMap, p1.sid)
@@ -208,6 +211,7 @@ func (this *LogicApi) MatchSuccess(p1 *innerMatchPlayer, p2 *innerMatchPlayer, c
 			Statue: CODE_OK,
 			Msg:    "",
 		}, components.MatchPlayInfo{
+			Kind:        0,
 			NickName:    "",
 			HeadUrl:     "",
 			Lv:          0,
@@ -264,6 +268,7 @@ func (this *LogicApi) MatchTimer(curMatchPlayer *innerMatchPlayer, chanOther cha
 						isMatched:   false,
 						roomId:      -1,
 						CrystalInfo: "",
+						kind:        0,
 					}
 					//this.MatchSuccess(curMatchPlayer, other, caller)
 					hLog.Debug("匹配超时")
@@ -365,7 +370,7 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	go this.MatchTimer(this.matchSessionMap[session.Id], this.chanMatchPlay[session.Id], serviceCaller)
 	otherPlayer := <-this.chanMatchPlay[session.Id]
 
-	if otherPlayer.roomId == -1 && otherPlayer.sid != "机器人" {
+	if otherPlayer.roomId == -1 && otherPlayer.kind != 0 {
 		errReply("Match 匹配服务器 房间创建失败")
 		return
 	}
@@ -379,17 +384,24 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	5.返回玩家
 	*/
 	session.SetProperty("OtherPlayer", otherPlayer.session)
+	userInfoData, ok := otherPlayer.session.GetProperty("userInfo")
+	if !ok {
+		errReply("Match 匹配服务器 获取用户数据失败")
+		return
+	}
+	userInfo := userInfoData.(*LoginMessage)
 	r.IsShootBall = otherPlayer.isShootBall
-	r.NickName = otherPlayer.sid
+	r.NickName = userInfo.NickName
 	r.Lv = otherPlayer.lv
-	r.HeadUrl = "https://wx.qlogo.cn/mmopen/vi_32/mtFonGxkxLZwLC31ibZJJuMWicfy4XGhazGBEic2Db8OH2JEmosEDRvyq0EEOx5uKqT1eTU8uk3qYRpvkzlsTA5Ig/132"
+	r.HeadUrl = userInfo.HeadUrl
+	r.Kind = otherPlayer.kind
 	this.rwLock.Lock()
 	close(this.chanMatchPlay[session.Id])
 	delete(this.chanMatchPlay, session.Id)
 	this.rwLock.Unlock()
 	r.RoomId = otherPlayer.roomId
 	r.CrystalInfo = otherPlayer.CrystalInfo
-	if otherPlayer.sid == "机器人" {
+	if otherPlayer.kind == 0 {
 		r.CrystalInfo = r.MatchCrystalInfo()
 	}
 	this.Reply(session, r)

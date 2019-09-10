@@ -7,6 +7,7 @@ import (
 
 // Match 返回结果
 type MatchPlayInfo struct {
+	Kind        int
 	NickName    string
 	HeadUrl     string
 	Lv          int
