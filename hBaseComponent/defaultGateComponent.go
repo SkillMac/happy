@@ -49,7 +49,7 @@ func (this *DefaultGateComponent) Awake(ctx *hEcs.Context) {
 		Protocol:             "ws",
 		PackageProtocol:      &hNet.TdProtocol{},
 		Address:              hConfig.Config.ClusterConfig.NetListenAddress,
-		IsUsePool:            false,
+		IsUsePool:            true,
 		QueueCap:             10000,
 		ReadTimeout:          time.Millisecond * time.Duration(hConfig.Config.ClusterConfig.NetConnTimeout),
 		OnClientDisconnected: this.OnDropped,

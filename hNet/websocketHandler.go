@@ -2,6 +2,7 @@ package hNet
 
 import (
 	"../hCommon"
+	"../hLog"
 	"context"
 	"encoding/binary"
 	"fmt"
@@ -93,9 +94,6 @@ func (this *WebSocketHandler) Listen() error {
 			conf.OnClientDisconnected(sess)
 		}
 		atomic.AddInt32(&this.acceptNum, -1)
-		if this.gpool != nil {
-			this.gpool.Release()
-		}
 	})
 
 	go func() {
@@ -131,22 +129,30 @@ func (this *WebSocketHandler) recv(sess *Session, conn *websocket.Conn) {
 		}
 	}
 
-	wid := int32(atomic.LoadInt32(&this.acceptNum))
+	wid := int32(-1)
 	for !this.server.isClosed {
 		_, pkg, err := conn.ReadMessage()
 		if err != nil || pkg == nil {
-			fmt.Println("[Error]", fmt.Sprintf("Close connection %s: %v", this.conf.Address, err))
+			hLog.Warn("[Error]", fmt.Sprintf("Close connection %s: %v", this.conf.Address, err))
 			return
 		}
 		if this.conf.IsUsePool {
 			// TODO
-			this.gpool.AddJobSerial(handler, []interface{}{sess, pkg}, wid, func(workerId int32) {
+			this.gpool.AddJobSerial(handler, []interface{}{sess, pkg, sess.Id}, wid, func(workerId int32) {
 				wid = workerId
 			})
 		} else {
 			go handler(sess, pkg)
 		}
 	}
+}
+
+func (this *WebSocketHandler) Destroy() error {
+	if this.gpool != nil {
+		hLog.Info("协程池释放")
+		this.gpool.Release()
+	}
+	return nil
 }
 
 /**

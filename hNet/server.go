@@ -36,6 +36,7 @@ type Server struct {
 	idleTime   time.Time // 待机时间
 	isClosed   bool      // 是否关闭
 	numInvoke  int32     // 调用的次数
+	handle     IHander   // 当前协议的句柄
 }
 
 /**
@@ -50,6 +51,7 @@ func NewServer(conf *ServerConf) *Server {
 
 func (this *Server) StartUp() error {
 	h := this.getHandler()
+	this.handle = h
 	if err := h.Listen(); err != nil {
 		return err
 	}
@@ -77,6 +79,10 @@ func (this *Server) getHandler() IHander {
 
 func (this *Server) Shutdown() {
 	this.isClosed = true
+	if this.handle != nil {
+		this.handle.Destroy()
+		this.handle = nil
+	}
 }
 
 func (this *Server) GetConfig() *ServerConf {

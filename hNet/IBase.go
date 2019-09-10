@@ -8,6 +8,7 @@ import (
 type IHander interface {
 	Listen() error
 	Handle() error
+	Destroy() error
 }
 
 type IPackageProtocol interface {
