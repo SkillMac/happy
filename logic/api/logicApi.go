@@ -125,7 +125,7 @@ func BindJson(body io.ReadCloser, retMap interface{}) error {
 }
 
 func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
-	hLog.Info("message  ", message)
+	hLog.Info("收到的message=====>", message)
 	errReply := func(msg string) {
 		r := &CommonResMessage{
 			Statue: CODE_ERROR,
@@ -140,15 +140,15 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 		return
 	}
 
-	wxInfo := ""
+	openId := ""
 	if message.JsCode != "123" {
 		wxInfo, err := loginWX(message.JsCode)
 		hLog.Info("wxInfo,err=====>", wxInfo, err)
 	} else {
-		wxInfo = "openid111111111111111"
+		openId = "openid111111111111111"
 	}
 
-	reply, err := serviceCaller.Call("login", components.Service_Login_Login, message.NickName, message.HeadUrl, message.JsCode, wxInfo)
+	reply, err := serviceCaller.Call("login", components.Service_Login_Login, openId, message.NickName, message.HeadUrl)
 	if err != nil {
 		hLog.Debug(err)
 		errReply("登录失败服务器登录节40013点异常")
@@ -156,7 +156,7 @@ func (this *LogicApi) Login(sess *hNet.Session, message *LoginMessage) {
 	} else {
 		sess.SetProperty("userInfo", message)
 	}
-	hLog.Info("reply=====>", reply)
+	hLog.Info("返给客户端reply=====>", reply)
 	this.Reply(sess, &LoginResMessage{
 		Statue: CODE_OK,
 		Msg:    reply[0].(string),

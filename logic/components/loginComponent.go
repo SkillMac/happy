@@ -5,15 +5,21 @@ import (
 	"../../hBaseComponent"
 	"../../hECS"
 	"../../hLog"
+	"time"
+
 	//"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type UserInfo struct {
-	ID       bson.ObjectId `bson:"_id"`
-	NickName string        `bson:"username"`
-	Lv       int           `bson:"lv"`
-	HeadUrl  string        `bson:"headurl"`
+	ID         bson.ObjectId `bson:"_id"`
+	OpenId     string        `bson:"openid"`
+	NickName   string        `bson:"username"`
+	HeadUrl    string        `bson:"headurl"`
+	Lv         int           `bson:"lv"`
+	Score      int           `bson:"score"`
+	CreateTime int64         `bson:"createtime"`
+	LastSign	int64
 }
 
 /*
@@ -37,8 +43,6 @@ func (this *LoginComponent) Awake(ctx *hEcs.Context) {
 }
 
 //func (this *LoginComponent) Start(ctx *hEcs.Context) {
-//	hLog.Debug("Startlllllllllll")
-
 /*
 	这个是插入的逻辑
 	err := hBaseComponent.Modle.M.Insert("users", &UserInfo{
@@ -77,15 +81,18 @@ func (this *LoginComponent) Awake(ctx *hEcs.Context) {
 
 func (this *LoginComponent) Login(message *hActor.ActorMessageInfo) error {
 	userInfo := &UserInfo{}
-	hLog.Info("message.Message.Data[0]",message.Message.Data[0])
-	err := hBaseComponent.Modle.M.FindOne("users", bson.M{"username": message.Message.Data[0]}, userInfo)
+	hLog.Info("来啦,老弟=====>", message.Message.Data[1])
+	err := hBaseComponent.Modle.M.FindOne("users", bson.M{"username": message.Message.Data[1]}, userInfo)
 	if err != nil {
 		message.Reply("没有该用户,创建新用户")
 		err := hBaseComponent.Modle.M.Insert("users", &UserInfo{
-			ID:       bson.NewObjectId(),
-			NickName: message.Message.Data[0].(string),
-			HeadUrl:  message.Message.Data[1].(string),
-			Lv:       1,
+			ID:         bson.NewObjectId(),
+			OpenId:     message.Message.Data[0].(string),
+			NickName:   message.Message.Data[1].(string),
+			HeadUrl:    message.Message.Data[2].(string),
+			Lv:         1,
+			Score:      0,
+			CreateTime: time.Now().Unix(),
 		})
 		if err != nil {
 			return message.Reply("插入用户失败")
@@ -93,7 +100,6 @@ func (this *LoginComponent) Login(message *hActor.ActorMessageInfo) error {
 			return message.Reply("插入用户成功")
 		}
 	} else {
-		hLog.Info("userInfo====>",userInfo)
 		return message.Reply("查找用户成功")
 	}
 }
