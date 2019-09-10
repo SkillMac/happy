@@ -20,7 +20,7 @@ type matchCrystalInfo struct {
 	Id     int //方块id数，随机1-8
 	Num    int //叠加方块的数量随机1-3
 	Angle  int //角度随机0-360
-	Shape  int //形状1-3随机
+	Shape  int //形状1-3随机   1:5, 2 3: 6
 	Sizeof int //大中小1-3随机
 }
 
@@ -43,17 +43,24 @@ func (this *MatchPlayInfo) MatchCrystalInfo() []matchCrystalInfo {
 			break
 		}
 		id := RandNum(8 + 1)
-
+		shape := RandNum(3 + 1)
+		angle := 0
 		for _, val := range slice {
-			//fmt.Println("id,val.id=== ", id, val.id)
 			if id == val.Id {
 				goto loop
 			}
 		}
+		if shape == 1 {
+			angle = RandNum(5 + 1)
+		}
+
+		if shape == 2 || shape == 3{
+			angle = RandNum(6 + 1)
+		}
 		crystall.Id = id
 		crystall.Num = RandNum(3 + 1)
-		crystall.Angle = RandNum(360 + 1)
-		crystall.Shape = RandNum(3 + 1)
+		crystall.Angle = angle
+		crystall.Shape =shape
 		crystall.Sizeof = RandNum(3 + 1)
 		slice = append(slice, *crystall)
 		idNum++
