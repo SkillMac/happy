@@ -383,17 +383,24 @@ func (this *LogicApi) Match(session *hNet.Session, message *MatchMessage) {
 	4.一处通道, 和 匹配玩家信息的map
 	5.返回玩家
 	*/
-	session.SetProperty("OtherPlayer", otherPlayer.session)
-	userInfoData, ok := otherPlayer.session.GetProperty("userInfo")
-	if !ok {
-		errReply("Match 匹配服务器 获取用户数据失败")
-		return
+
+	// 是真人进来了
+	if otherPlayer.kind == 1 {
+		session.SetProperty("OtherPlayer", otherPlayer.session)
+		userInfoData, ok := otherPlayer.session.GetProperty("userInfo")
+		if !ok {
+			errReply("Match 匹配服务器 获取用户数据失败")
+			return
+		}
+		userInfo := userInfoData.(*LoginMessage)
+		r.HeadUrl = userInfo.HeadUrl
+		r.NickName = userInfo.NickName
+	} else if otherPlayer.kind == 0 {
+		// 机器人
+		r.NickName = otherPlayer.sid
 	}
-	userInfo := userInfoData.(*LoginMessage)
 	r.IsShootBall = otherPlayer.isShootBall
-	r.NickName = userInfo.NickName
 	r.Lv = otherPlayer.lv
-	r.HeadUrl = userInfo.HeadUrl
 	r.Kind = otherPlayer.kind
 	this.rwLock.Lock()
 	close(this.chanMatchPlay[session.Id])
