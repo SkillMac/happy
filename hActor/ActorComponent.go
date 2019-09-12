@@ -114,7 +114,11 @@ func (this *ActorComponent) Tell(sender IActor, message *ActorMessage, reply ...
 
 	this.queueReceive <- messageInfo
 
-	if messageInfo.IsNeedReply() {
+	if messageInfo.IsNeedReply() && message.IsWaitCall {
+		select {
+		case <-messageInfo.done:
+		}
+	} else if messageInfo.IsNeedReply() {
 		select {
 		case <-hTimer.After(time.Duration(hConfig.Config.ClusterConfig.RpcCallTimeout) * time.Millisecond):
 			messageInfo.err = ErrTimeout

@@ -53,3 +53,28 @@ func (this *ActorServiceCaller) Call(role string, serviceName string, args ...in
 	}
 	return res, err
 }
+
+func (this *ActorServiceCaller) CallWait(role string, serviceName string, args ...interface{}) ([]interface{}, error) {
+	var err error
+	//优先尝试缓存客户端，避免反复查询，尽量去中心化
+	service, ok := this.services[serviceName]
+	if ok {
+		res, err := service.CallWait(args...)
+		if err != nil {
+			delete(this.services, serviceName)
+		} else {
+			return res, err
+		}
+	}
+	//无缓存，或者通过缓存调用失败，重新查询调用
+	service, err = this.proxy.GetActorService(role, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	this.services[serviceName] = service
+	res, err := service.CallWait(args...)
+	if err != nil {
+		delete(this.services, serviceName)
+	}
+	return res, err
+}

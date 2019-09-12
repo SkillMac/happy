@@ -5,9 +5,9 @@
 package rpc
 
 import (
+	"bufio"
 	"custom/happy/hLog"
 	"custom/happy/hTimer"
-	"bufio"
 	"encoding/gob"
 	"errors"
 	"io"
@@ -458,6 +458,22 @@ func (client *TcpClient) Call(serviceMethod string, args interface{}, reply inte
 
 // Call invokes the named function, waits for it to complete, and returns its error status.
 func (client *TcpClient) CallWithoutReply(serviceMethod string, args interface{}) error {
+	if client.IsClosed() {
+		return ErrShutdown
+	}
 	call := <-client.Go(serviceMethod, args, nil, make(chan *Call, 1)).Done
 	return call.Error
+}
+
+func (client *TcpClient) CallWait(serviceMethod string, args interface{}, reply interface{}) error {
+	if client.IsClosed() {
+		return ErrShutdown
+	}
+
+	call := client.Go(serviceMethod, args, reply, make(chan *Call, 1))
+
+	select {
+	case <-call.Done:
+		return call.Error
+	}
 }

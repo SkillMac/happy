@@ -117,7 +117,7 @@ func (this *logConsole) setRollingDaily(dir, fileName string) {
 	lfl.add(dir, fileName, 0, 0, 0)
 }
 
-func (this *logConsole) console(val ...interface{}) {
+func (this *logConsole) console(level string, val ...interface{}) {
 	s := fmt.Sprint(val...)
 	if this.isConsole {
 		_, file, line, _ := runtime.Caller(SKIP)
@@ -130,11 +130,12 @@ func (this *logConsole) console(val ...interface{}) {
 		}
 		file = short
 		if this.format == "" {
-			log.Println(file, strconv.Itoa(line), s)
+			log.Println(file, strconv.Itoa(line), level, s)
 		} else {
 			vs := make([]interface{}, 0)
 			vs = append(vs, file)
 			vs = append(vs, strconv.Itoa(line))
+			vs = append(vs, level)
 			for _, vv := range val {
 				vs = append(vs, vv)
 			}
@@ -179,21 +180,22 @@ func (this *logConsole) log(level string, val ...interface{}) {
 		}
 		_level = FATAL
 	}
+	log_level := fmt.Sprintf("[%s]", level)
 	if lg != nil {
 		this.fileCheck(lg)
 		lg.addSize(int64(length))
 		if this.logLevel <= _level {
 			if lg != nil {
 				if this.format == "" {
-					lg.write(level, s)
+					lg.write(log_level, s)
 				} else {
 					lg.fwrite(this.format, val...)
 				}
 			}
-			this.console(val...)
+			this.console(log_level, val...)
 		}
 	} else {
-		this.console(val...)
+		this.console(log_level, val...)
 	}
 }
 

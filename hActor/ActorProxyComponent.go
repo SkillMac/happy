@@ -181,12 +181,22 @@ func (this *ActorProxyComponent) Emit(actorID ActorID, messageInfo *ActorMessage
 	if messageInfo.Sender != nil {
 		sender = messageInfo.Sender.ID()
 	}
-	err = client.Call("ActorProxyService.Tell", &ActorRpcMessageInfo{
-		Target:  actorID,
-		Sender:  sender,
-		Message: messageInfo.Message}, messageInfo.reply)
-	if err != nil {
-		return err
+	if messageInfo.Message.IsWaitCall {
+		err = client.CallWait("ActorProxyService.Tell", &ActorRpcMessageInfo{
+			Target:  actorID,
+			Sender:  sender,
+			Message: messageInfo.Message}, messageInfo.reply)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = client.Call("ActorProxyService.Tell", &ActorRpcMessageInfo{
+			Target:  actorID,
+			Sender:  sender,
+			Message: messageInfo.Message}, messageInfo.reply)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

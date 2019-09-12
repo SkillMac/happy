@@ -1,6 +1,7 @@
 package hCluster
 
 import (
+	"custom/happy/hCommon"
 	"errors"
 	"sync"
 )
@@ -10,6 +11,7 @@ const (
 	SELECTOR_TYPE_DEFAULT  SelectorType = "Default"
 	SELECTOR_TYPE_MIN_LOAD SelectorType = "MinLoad"
 	SELECTOR_TYPE_CUSTOM   SelectorType = "Custom"
+	SELECTOR_TYPE_RANDOM   SelectorType = "Random"
 )
 
 type SelectorType = string
@@ -35,6 +37,14 @@ func (this SourceGroup) SelectMinLoad() int {
 		}
 	}
 	return index
+}
+
+func (this SourceGroup) Random() int {
+	d := hCommon.GenRandom(0, len(this), 1)
+	if d == nil {
+		d = []int{-1}
+	}
+	return d[0]
 }
 
 type Selector map[string]*NodeInfo
@@ -72,7 +82,7 @@ func (this Selector) DoQuery(query []string, detail bool, locker *sync.RWMutex, 
 	locker.RUnlock()
 
 	switch query[0] {
-	case SELECTOR_TYPE_DEFAULT, SELECTOR_TYPE_MIN_LOAD:
+	case SELECTOR_TYPE_MIN_LOAD:
 		var index = -1
 		index = SourceGroup(reply).SelectMinLoad()
 		if index != -1 {
@@ -86,6 +96,14 @@ func (this Selector) DoQuery(query []string, detail bool, locker *sync.RWMutex, 
 		}
 		index = selector[0](SourceGroup(reply))
 		reply = []*InquiryReply{reply[index]}
+	case SELECTOR_TYPE_DEFAULT, SELECTOR_TYPE_RANDOM:
+		var index = -1
+		index = SourceGroup(reply).Random()
+		if index == -1 {
+			err = errors.New("[Select-DoQuery] Random index = -1")
+		} else if index != -1 {
+			reply = []*InquiryReply{reply[index]}
+		}
 	default:
 
 	}
