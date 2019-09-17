@@ -259,7 +259,7 @@ func (this *ApiBase) GetMessageType(message interface{}) (uint32, bool) {
 }
 
 func (this *ApiBase) OnConnect(sess *Session) {
-	this.SessMap.Store(sess.Id, &sess)
+	this.SessMap.Store(sess.Id, sess)
 }
 
 func (this *ApiBase) OnDisconnect(sess *Session) {
