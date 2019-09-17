@@ -54,13 +54,15 @@ func (this *WsConn) Close() error {
 implent IHandler interface
 */
 type WebSocketHandler struct {
-	conf      *ServerConf
-	server    *Server
-	numInvoke int32
-	acceptNum int32
-	invokeNum int32
-	idleTime  time.Time
-	gpool     *gPool
+	conf         *ServerConf
+	server       *Server
+	numInvoke    int32
+	acceptNum    int32
+	invokeNum    int32
+	idleTime     time.Time
+	gpool        *gPool
+	isChanClose  chan struct{}
+	isCheckClose bool
 }
 
 func (this *WebSocketHandler) Listen() error {
@@ -94,7 +96,11 @@ func (this *WebSocketHandler) Listen() error {
 		if conf.OnClientDisconnected != nil {
 			conf.OnClientDisconnected(sess)
 		}
-		atomic.AddInt32(&this.acceptNum, -1)
+		i := atomic.AddInt32(&this.acceptNum, -1)
+		if i == 0 && this.isCheckClose {
+			hLog.Info("通道赋值")
+			close(this.isChanClose)
+		}
 	})
 
 	go func() {
@@ -125,7 +131,7 @@ func (this *WebSocketHandler) recv(sess *Session, conn *websocket.Conn) {
 			if this.conf.LogicAPI != nil && mid != nil {
 				this.server.invoke(ctx, mid[0], mes)
 			} else {
-				fmt.Println("[Error] no message handler")
+				hLog.Error("[Error] no message handler")
 			}
 		}
 	}
@@ -148,6 +154,19 @@ func (this *WebSocketHandler) recv(sess *Session, conn *websocket.Conn) {
 	}
 }
 
+func (this *WebSocketHandler) CheckClose() {
+	hLog.Info("WebSocketHandler CheckClose")
+	this.isCheckClose = true
+	if atomic.LoadInt32(&this.acceptNum) > 0 {
+		hLog.Info("服务器 等待所有玩家退出 并关闭服务器")
+		select {
+		case <-this.isChanClose:
+		}
+	}
+
+	hLog.Info("服务器 Handler 安全退出")
+}
+
 func (this *WebSocketHandler) Destroy() error {
 	if this.gpool != nil {
 		hLog.Info("协程池释放")
@@ -161,6 +180,8 @@ New
 */
 func NewWebSocketHandler(conf *ServerConf, server *Server) *WebSocketHandler {
 	wsh := &WebSocketHandler{conf: conf, server: server}
+	wsh.isCheckClose = false
+	wsh.isChanClose = make(chan struct{})
 	return wsh
 }
 

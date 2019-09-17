@@ -77,6 +77,12 @@ func (this *Server) getHandler() IHander {
 	return h
 }
 
+func (this *Server) CheckClose() {
+	if this.handle != nil {
+		this.handle.CheckClose()
+	}
+}
+
 func (this *Server) Shutdown() {
 	this.isClosed = true
 	if this.handle != nil {

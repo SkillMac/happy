@@ -25,6 +25,7 @@ type LauncherComponent struct {
 	componentGroup *hCluster.ComponentGroups
 	Config         *hConfig.ConfigComponent
 	Close          chan struct{}
+	checkHandler   func()
 }
 
 func (this *LauncherComponent) IsUnique() int {
@@ -106,6 +107,12 @@ func (this *LauncherComponent) Serve() {
 	case <-this.Close:
 	}
 
+	// 检查连接数量 大于 0 继续服务知道所有的玩家退出游戏
+	if this.checkHandler != nil && !hConfig.Config.CommonConfig.Debug {
+		hLog.Info("检查连接数量")
+		this.checkHandler()
+	}
+
 	hLog.Info("====== Start to close this server, do some cleaning now ...... ======")
 	//do something else
 	err = this.Root().Destroy()
@@ -163,4 +170,8 @@ func (this *LauncherComponent) AddComponentGroups(groups map[string][]hEcs.IComp
 		this.componentGroup.AddGroup(groupName, group)
 	}
 	return nil
+}
+
+func (this *LauncherComponent) RegisterGateCheckCloseFunc(handler func()) {
+	this.checkHandler = handler
 }

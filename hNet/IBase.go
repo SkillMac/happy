@@ -8,6 +8,7 @@ import (
 type IHander interface {
 	Listen() error
 	Handle() error
+	CheckClose()
 	Destroy() error
 }
 

@@ -32,13 +32,18 @@ func (this *ModleComponent) GetRequire() map[*hEcs.Object][]reflect.Type {
 }
 
 func (this *ModleComponent) Initialize() error {
-	hLog.Info("MongoDB 数据打开")
+	hLog.Info("MongoDB 数据数据库初始化")
 	this.initDatabase()
 	Modle = this
 	return nil
 }
 
 func (this *ModleComponent) initDatabase() {
+	this.initMongoDB()
+	this.initRedis()
+}
+
+func (this *ModleComponent) initMongoDB() {
 	this.M = mongo.NewDbOperate(mongo.NewDbCfg(
 		hConfig.Config.CustomConfig.Mongo.DbHost,
 		hConfig.Config.CustomConfig.Mongo.DbPort,
@@ -50,6 +55,11 @@ func (this *ModleComponent) initDatabase() {
 		// 一个连接大概占10M
 		ms.SetPoolLimit((50))
 	})
+}
+
+func (this *ModleComponent) initRedis() {
+	hLog.Info("Redis 数据库初始化  TODO")
+
 }
 
 //func (this *ModleComponent) Awake(ctx *hEcs.Context) {

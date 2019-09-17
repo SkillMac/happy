@@ -15,11 +15,12 @@ import (
 
 type DefaultGateComponent struct {
 	hEcs.ComponentBase
-	locker        sync.RWMutex
-	nodeComponent *hCluster.NodeComponent
-	clients       sync.Map // [sessionID,*session]
-	NetAPI        hNet.ILogicAPI
-	server        *hNet.Server
+	locker            sync.RWMutex
+	nodeComponent     *hCluster.NodeComponent
+	launcherComponent *LauncherComponent
+	clients           sync.Map // [sessionID,*session]
+	NetAPI            hNet.ILogicAPI
+	server            *hNet.Server
 }
 
 func (this *DefaultGateComponent) IsUnique() int {
@@ -39,6 +40,12 @@ func (this *DefaultGateComponent) Awake(ctx *hEcs.Context) {
 	if err != nil {
 		panic(err)
 	}
+
+	err = this.Parent().Root().Find(&this.launcherComponent)
+	if err != nil {
+		panic(err)
+	}
+
 	if this.NetAPI == nil {
 		panic(errors.New("NetAPI is necessity of defaultGateComponent"))
 	}
@@ -63,6 +70,14 @@ func (this *DefaultGateComponent) Awake(ctx *hEcs.Context) {
 	if err != nil {
 		panic(err)
 	}
+
+	//
+	this.launcherComponent.RegisterGateCheckCloseFunc(this.CheckClose)
+}
+
+func (this *DefaultGateComponent) CheckClose() {
+	fmt.Println("Gate 网关检查关闭")
+	this.server.CheckClose()
 }
 
 func (this *DefaultGateComponent) AddNetAPI(api hNet.ILogicAPI) {

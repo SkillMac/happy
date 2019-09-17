@@ -26,9 +26,9 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 
 
 // TODO
-1. 在关闭服务器的时候 等待全部玩家退出后 结束服务
+-- 1. 在关闭服务器的时候 等待全部玩家退出后 结束服务
 -- 2. 优化 RPC 延时回调 导致 逻辑不可拆除问题
-3. 远程呼叫的时候可以传结构体
+-- 3. 远程呼叫的时候可以传结构体
 4. 创建 Redis 连接库
 5. 在 master 节点行添加 获取gate网关的逻辑 开启一个无状态的 gate 网关
 6. 添加服务器关掉 发送邮件
@@ -40,5 +40,11 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 
 
 // DONE
+1. 在关闭服务器的时候 等待全部玩家退出后 结束服务
+2. 优化 RPC 延时回调 导致 逻辑不可拆除问题
+3. 远程呼叫的时候可以传结构体
+
 8. 优化 log 输出格式, 在日志和控制台中输出标识 例如[info]
 10. 随机(待测试)
+
+11. 使用 pm2 保证服务器 岩机重启

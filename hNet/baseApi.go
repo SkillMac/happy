@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync"
 )
 
 type MessageProtocol interface {
@@ -34,6 +35,7 @@ type ApiBase struct {
 	protoc   MessageProtocol
 	parent   *hEcs.Object
 	isInit   bool
+	SessMap  sync.Map
 }
 
 func (this *ApiBase) Instance(instance interface{}) *ApiBase {
@@ -257,7 +259,9 @@ func (this *ApiBase) GetMessageType(message interface{}) (uint32, bool) {
 }
 
 func (this *ApiBase) OnConnect(sess *Session) {
+	this.SessMap.Store(sess.Id, &sess)
 }
 
 func (this *ApiBase) OnDisconnect(sess *Session) {
+	this.SessMap.Delete(sess.Id)
 }
