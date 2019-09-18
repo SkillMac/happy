@@ -49,7 +49,14 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 6. 添加服务器关掉 发送邮件(测试完毕)
 8. 优化 log 输出格式, 在日志和控制台中输出标识 例如[info](测试完毕)
 9. 添加计算 当前服务器 的使用内存 和 cpu 的使用量(测试完毕)
-10. 随机(测试完毕), Cpu & Mem,
+10. 随机(测试完毕), Cpu & Mem(测试完毕),
 
 11. 使用 pm2 保证服务器 岩机重启
 12. 给客户端添加获取 连接 Gate 网关的接口(测试完毕)
+
+
+# 依赖的库文件
+| 名字 | 地址|
+| -- | -- |
+|-|github.com/go-gomail/gomail|
+|-|github.com/struCoder/pidusage|
