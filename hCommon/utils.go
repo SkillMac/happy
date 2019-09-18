@@ -9,10 +9,18 @@ import (
 	"math/rand"
 	"reflect"
 	"runtime/debug"
+	"strconv"
 	"sync"
 	"time"
 	"unicode"
 	"unicode/utf8"
+)
+
+const (
+	_        = iota
+	KB int64 = 1 << (iota * 10)
+	MB
+	GB
 )
 
 func CheckError() {
@@ -218,4 +226,16 @@ func BytesToStr(b []byte) string {
 	buffer.Write(b)
 
 	return buffer.String()
+}
+
+func FormatMem(mem float64) string {
+	d := int64(mem)
+	if d < KB {
+		return strconv.FormatInt(d, 10) + "KB"
+	} else if d >= KB && d < MB {
+		return strconv.FormatInt(d/KB, 10) + "KB"
+	} else if d >= MB && d < GB {
+		return strconv.FormatInt(d/MB, 10) + "MB"
+	}
+	return strconv.FormatInt(d/GB, 10) + "GB"
 }

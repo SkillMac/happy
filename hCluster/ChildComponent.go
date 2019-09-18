@@ -7,6 +7,8 @@ import (
 	"custom/happy/hLog"
 	"custom/happy/hRpc"
 	"fmt"
+	"github.com/struCoder/pidusage"
+	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -19,7 +21,8 @@ type ChildComponent struct {
 	localAddr       string
 	rpcMaster       *rpc.TcpClient //master节点
 	nodeComponent   *NodeComponent
-	reportCollecter []func() (string, float32)
+	sysInfo         *pidusage.SysInfo
+	reportCollecter func() map[string]float64
 	close           bool
 }
 
@@ -37,7 +40,18 @@ func (this *ChildComponent) Awake(ctx *hEcs.Context) {
 	if err != nil {
 		panic(err)
 	}
-
+	// 添加 cpu 和 内存收集器
+	this.AddReportInfo("custom", func() map[string]float64 {
+		this.sysInfo, err = pidusage.GetStat(os.Getpid())
+		if err != nil {
+			hLog.Error(fmt.Sprintf("[Role]: %v, [Addr]: %s 获取系统信息失败", hConfig.Config.ClusterConfig.Role, this.localAddr))
+			return make(map[string]float64)
+		}
+		return map[string]float64{
+			"cpu": this.sysInfo.CPU,
+			"mem": this.sysInfo.Memory,
+		}
+	})
 	go this.ConnectToMaster()
 	go this.DoReport()
 }
@@ -78,17 +92,21 @@ func (this *ChildComponent) DoReport() {
 			this.locker.RUnlock()
 			return
 		}
-		m := make(map[string]float32)
-		for _, collector := range this.reportCollecter {
-			f, d := collector()
-			m[f] = d
+		m := make(map[string]float64)
+		//for _, collector := range this.reportCollecter {
+		//	f, d := collector()
+		//	m[f] = d
+		//}
+		if this.reportCollecter != nil {
+			m = this.reportCollecter()
+			//hLog.Debug("上传节点信息", m)
 		}
 		args.Info = m
 		this.locker.RUnlock()
 		if this.rpcMaster != nil {
 			err := this.rpcMaster.Call("MasterService.ReportNodeInfo", args, &reply)
 			if err != nil {
-
+				hLog.Error("Call MasterServie.ReportNodeInfo fail In ChildComponet")
 			}
 		}
 		time.Sleep(time.Millisecond * interval)
@@ -96,9 +114,9 @@ func (this *ChildComponent) DoReport() {
 }
 
 //增加上报信息
-func (this *ChildComponent) AddReportInfo(field string, collectFunction func() (string, float32)) {
+func (this *ChildComponent) AddReportInfo(field string, collectFunction func() map[string]float64) {
 	this.locker.Lock()
-	this.reportCollecter = append(this.reportCollecter, collectFunction)
+	this.reportCollecter = collectFunction
 	this.locker.Unlock()
 }
 

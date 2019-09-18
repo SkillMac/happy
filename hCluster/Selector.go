@@ -20,10 +20,10 @@ type SourceGroup []*InquiryReply
 
 //最小负载：cpu * 80% + mem * 20%
 func (this SourceGroup) SelectMinLoad() int {
-	var min float32 = 1
+	var min float64 = 1
 	var index int = -1
 	for i, info := range this {
-		var cpu, mem float32 = 1, 1
+		var cpu, mem float64 = 1, 1
 		if v, ok := info.Info["cpu"]; ok {
 			cpu = v
 		}

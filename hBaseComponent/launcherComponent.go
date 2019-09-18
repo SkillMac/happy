@@ -3,6 +3,7 @@ package hBaseComponent
 import (
 	"custom/happy/hActor"
 	"custom/happy/hCluster"
+	"custom/happy/hCommon"
 	"custom/happy/hConfig"
 	"custom/happy/hECS"
 	"custom/happy/hLog"
@@ -45,6 +46,9 @@ func (this *LauncherComponent) Initialize() error {
 
 	//设置runtime工作线程
 	this.Runtime().SetMaxThread(hConfig.Config.CommonConfig.RuntimeMaxWorker)
+
+	// 初始化邮件
+	hCommon.NewAutoEmail(&hConfig.Config.CustomConfig.Email)
 
 	//rpc设置
 	rpc.CallTimeout = time.Millisecond * time.Duration(hConfig.Config.ClusterConfig.RpcCallTimeout)

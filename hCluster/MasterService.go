@@ -9,12 +9,12 @@ type NodeInfo struct {
 	Address string
 	Role    []string
 	AppName string
-	Info    map[string]float32
+	Info    map[string]float64
 }
 
 type InquiryReply struct {
 	Node string
-	Info map[string]float32
+	Info map[string]float64
 }
 
 type MasterService struct {

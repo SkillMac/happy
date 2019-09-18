@@ -1,6 +1,7 @@
 package hConfig
 
 import (
+	"custom/happy/hCommon"
 	"custom/happy/hDataBase/mongo"
 	"custom/happy/hECS"
 	"custom/happy/hLog"
@@ -90,7 +91,6 @@ func (this *ConfigComponent) ReloadConfig() {
 	}
 }
 
-// 没有被使用
 // config.CustomConfig[name] = structure
 func (this *ConfigComponent) LoadCustomConfig(path string, structure interface{}) (err error) {
 	kind := reflect.TypeOf(structure).Kind()
@@ -162,6 +162,14 @@ func (this *ConfigComponent) SetDefault() {
 			DbUser: "",
 			DbPass: "",
 		},
+		Email: hCommon.EmailParam{
+			ServerHost: "smtp.163.com",
+			ServerPort: 25,
+			FromEmail:  "",
+			FromPasswd: "",
+			Toers:      "",
+			CCers:      "",
+		},
 	}
 }
 
@@ -206,4 +214,5 @@ type ClusterConfig struct {
 
 type CustomConfig struct {
 	Mongo mongo.DbCfg
+	Email hCommon.EmailParam
 }
