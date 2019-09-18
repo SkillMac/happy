@@ -142,6 +142,7 @@ func (this *LauncherComponent) OverrideNodeDefine(nodeConfName string) {
 			this.Config.ClusterConfig.NetListenAddress = s.NetAddr.Addr
 			this.Config.ClusterConfig.NetListenAddressAlias = "ws://" + s.NetAddr.Addr + "/ws"
 		}
+		this.Config.ClusterConfig.WorkId = s.WorkId
 	} else {
 		panic(errors.New(fmt.Sprintf("this config name [ %s ] not defined", nodeConfName)))
 	}

@@ -119,6 +119,7 @@ func (this *ConfigComponent) SetDefault() {
 		LogConsolePrint: true,
 	}
 	this.ClusterConfig = &ClusterConfig{
+		WorkId:        1,
 		MasterAddress: "127.0.0.1:6666",
 		LocalAddress:  "127.0.0.1:6666",
 		AppName:       "defaultApp",
@@ -128,7 +129,7 @@ func (this *ConfigComponent) SetDefault() {
 				内置角色：master、child、location
 			*/
 			//master节点
-			"node_master": {LocalAddress: "0.0.0.0:6666", Role: []string{"single"}, NetAddr: NetAddr{Addr: "127.0.0.1:5555", Alias: ""}},
+			"node_master": {WorkId: 1, LocalAddress: "0.0.0.0:6666", Role: []string{"single"}, NetAddr: NetAddr{Addr: "127.0.0.1:5555", Alias: ""}},
 			//位置服务节点
 			//"node_location": {LocalAddress: "0.0.0.0:6603", Role: []string{"location"}},
 
@@ -138,7 +139,7 @@ func (this *ConfigComponent) SetDefault() {
 			//"node_room":  {LocalAddress: "0.0.0.0:6605", Role: []string{"room"}},
 
 			//dubug 或 单服
-			"node_single": {LocalAddress: "0.0.0.0:6666", Role: []string{"master", "gate"}, NetAddr: NetAddr{
+			"node_single": {WorkId: 1, LocalAddress: "0.0.0.0:6666", Role: []string{"master", "gate"}, NetAddr: NetAddr{
 				Addr: "127.0.0.1:5555", Alias: "",
 			}}, /*, "gate", "login", "room"}},*/
 		},
@@ -191,6 +192,7 @@ type CommonConfig struct {
 
 }
 type Node struct {
+	WorkId       int64
 	LocalAddress string
 	Role         []string
 	NetAddr      NetAddr
@@ -202,6 +204,7 @@ type NetAddr struct {
 }
 
 type ClusterConfig struct {
+	WorkId        int64
 	MasterAddress string   //Master 地址,例如:127.0.0.1:8888
 	LocalAddress  string   //本节点IP,注意配置文件时，填写正确的局域网地址或者外网地址，不可为0.0.0.0
 	AppName       string   //本节点拥有的app

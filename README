@@ -60,3 +60,4 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 | -- | -- |
 |-|github.com/go-gomail/gomail|
 |-|github.com/struCoder/pidusage|
+|-|github.com/bwmarrin/snowflake|

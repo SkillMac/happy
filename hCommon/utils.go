@@ -6,6 +6,7 @@ import (
 	"custom/happy/hLog"
 	"encoding/hex"
 	"errors"
+	"github.com/bwmarrin/snowflake"
 	"math/rand"
 	"reflect"
 	"runtime/debug"
@@ -255,4 +256,12 @@ func Contains(arr interface{}, ele interface{}) bool {
 		}
 	}
 	return false
+}
+
+func GenId(id int64) int64 {
+	node, err := snowflake.NewNode(id)
+	if err != nil {
+		return -1
+	}
+	return node.Generate().Int64()
 }
