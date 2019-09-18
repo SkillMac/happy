@@ -239,3 +239,20 @@ func FormatMem(mem float64) string {
 	}
 	return strconv.FormatInt(d/GB, 10) + "GB"
 }
+
+func Contains(arr interface{}, ele interface{}) bool {
+	tmp := reflect.ValueOf(arr)
+	switch reflect.TypeOf(arr).Kind() {
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < tmp.Len(); i++ {
+			if tmp.Index(i).Interface() == ele {
+				return true
+			}
+		}
+	case reflect.Map:
+		if tmp.MapIndex(reflect.ValueOf(ele)).IsValid() {
+			return true
+		}
+	}
+	return false
+}

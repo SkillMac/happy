@@ -76,7 +76,6 @@ func (this *WebSocketHandler) Listen() error {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.GET("/", home)
-	router.GET("/getAddress", getUsableGateAddress)
 	router.GET("/ws", func(ctx *gin.Context) {
 		conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
@@ -198,9 +197,5 @@ func home(ctx *gin.Context) {
 	}
 
 	//http.ServeFile(w, r, "home.html")
-	w.WriteString("happy server framework")
-}
-
-func getUsableGateAddress(ctx *gin.Context) {
-
+	w.WriteString("happy server framework \n Gate Component")
 }

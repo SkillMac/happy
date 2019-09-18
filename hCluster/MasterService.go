@@ -7,15 +7,20 @@ import (
 type NodeInfo struct {
 	Time    int64
 	Address string
-	Role    []string
-	AppName string
-	Info    map[string]float64
+	//NetAddress string
+	Role       []string
+	AppName    string
+	Info       map[string]float64
+	CustomData map[string]interface{}
 }
 
 type InquiryReply struct {
-	Node string
-	Info map[string]float64
+	Node       string
+	Info       map[string]float64
+	CustomData map[string]interface{}
 }
+
+type NodeInfoDetail InquiryReply
 
 type MasterService struct {
 	master *MasterComponent

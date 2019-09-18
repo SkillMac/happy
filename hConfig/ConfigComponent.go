@@ -128,7 +128,7 @@ func (this *ConfigComponent) SetDefault() {
 				内置角色：master、child、location
 			*/
 			//master节点
-			"node_master": {LocalAddress: "0.0.0.0:6666", Role: []string{"single"}},
+			"node_master": {LocalAddress: "0.0.0.0:6666", Role: []string{"single"}, NetAddr: NetAddr{Addr: "127.0.0.1:5555", Alias: ""}},
 			//位置服务节点
 			//"node_location": {LocalAddress: "0.0.0.0:6603", Role: []string{"location"}},
 
@@ -138,7 +138,9 @@ func (this *ConfigComponent) SetDefault() {
 			//"node_room":  {LocalAddress: "0.0.0.0:6605", Role: []string{"room"}},
 
 			//dubug 或 单服
-			"node_single": {LocalAddress: "0.0.0.0:6666", Role: []string{"master", "gate"}}, /*, "gate", "login", "room"}},*/
+			"node_single": {LocalAddress: "0.0.0.0:6666", Role: []string{"master", "gate"}, NetAddr: NetAddr{
+				Addr: "127.0.0.1:5555", Alias: "",
+			}}, /*, "gate", "login", "room"}},*/
 		},
 
 		ReportInterval:       3000,
@@ -148,10 +150,10 @@ func (this *ConfigComponent) SetDefault() {
 		IsLocationMode:       true,
 		LocationSyncInterval: 500,
 
-		NetConnTimeout:   9000,
-		NetListenAddress: "127.0.0.1:5555",
-
-		//IsActorModel: true,
+		NetConnTimeout:         9000,
+		NetListenAddress:       "127.0.0.1:5555",
+		NetListenAddressAlias:  "",
+		SelectNetListenAddress: "127.0.0.1:5556",
 	}
 
 	this.CustomConfig = &CustomConfig{
@@ -191,6 +193,12 @@ type CommonConfig struct {
 type Node struct {
 	LocalAddress string
 	Role         []string
+	NetAddr      NetAddr
+}
+
+type NetAddr struct {
+	Addr  string
+	Alias string
 }
 
 type ClusterConfig struct {
@@ -208,8 +216,10 @@ type ClusterConfig struct {
 	LocationSyncInterval int  //位置服务同步间隔，单位秒
 
 	//外网
-	NetConnTimeout   int    //外网链接超时
-	NetListenAddress string //网关对外服务地址
+	NetConnTimeout         int    //外网链接超时
+	NetListenAddress       string //网关对外服务地址
+	NetListenAddressAlias  string //监听网关地址别名
+	SelectNetListenAddress string //无状态网关对外服务地址
 }
 
 type CustomConfig struct {

@@ -135,6 +135,13 @@ func (this *LauncherComponent) OverrideNodeDefine(nodeConfName string) {
 	if s, ok := this.Config.ClusterConfig.NodeDefine[nodeConfName]; ok {
 		this.Config.ClusterConfig.LocalAddress = s.LocalAddress
 		this.Config.ClusterConfig.Role = s.Role
+		if s.NetAddr.Alias != "" {
+			this.Config.ClusterConfig.NetListenAddressAlias = s.NetAddr.Alias
+			this.Config.ClusterConfig.NetListenAddress = s.NetAddr.Addr
+		} else if s.NetAddr.Addr != "" {
+			this.Config.ClusterConfig.NetListenAddress = s.NetAddr.Addr
+			this.Config.ClusterConfig.NetListenAddressAlias = "ws://" + s.NetAddr.Addr + "/ws"
+		}
 	} else {
 		panic(errors.New(fmt.Sprintf("this config name [ %s ] not defined", nodeConfName)))
 	}

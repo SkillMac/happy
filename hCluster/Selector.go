@@ -47,6 +47,22 @@ func (this SourceGroup) Random() int {
 	return d[0]
 }
 
+func (this SourceGroup) DoQuery(selectorType SelectorType) int {
+	switch selectorType {
+	case SELECTOR_TYPE_DEFAULT, SELECTOR_TYPE_RANDOM:
+		return this.Random()
+	case SELECTOR_TYPE_MIN_LOAD:
+		return this.SelectMinLoad()
+	case SELECTOR_TYPE_CUSTOM:
+		if len(this) == 0 {
+			return -1
+		}
+		return 0
+	default:
+		return -1
+	}
+}
+
 type Selector map[string]*NodeInfo
 
 var ErrNoAvailableNode = errors.New("query string wrong")
@@ -66,9 +82,9 @@ func (this Selector) DoQuery(query []string, detail bool, locker *sync.RWMutex, 
 			for _, role := range nodeInfo.Role {
 				if role == query[2] {
 					if detail {
-						reply = append(reply, &InquiryReply{Node: nodeName, Info: nodeInfo.Info})
+						reply = append(reply, &InquiryReply{Node: nodeName, Info: nodeInfo.Info, CustomData: nodeInfo.CustomData})
 					} else {
-						reply = append(reply, &InquiryReply{Node: nodeName})
+						reply = append(reply, &InquiryReply{Node: nodeName, CustomData: nodeInfo.CustomData})
 					}
 					err = nil
 					break

@@ -11,6 +11,8 @@ type NodeID struct {
 	nodeComponent *NodeComponent
 }
 
+var NotExistIndex error = errors.New("[ERROR] node info detial index is not exist")
+
 func (this *NodeID) GetClient() (*rpc.TcpClient, error) {
 	if this.Addr == "" {
 		return nil, errors.New("this node id is empty")
@@ -85,6 +87,19 @@ func (this *NodeIDGroup) Clients() ([]*rpc.TcpClient, error) {
 		return nil, errors.New("this node id group is empty")
 	}
 	return clients, nil
+}
+
+func (this *NodeIDGroup) SelectOneNodeInfo(selectType SelectorType) (*NodeInfoDetail, error) {
+	index := SourceGroup(this.nodes).DoQuery(selectType)
+	if index == -1 {
+		return nil, NotExistIndex
+	}
+
+	return &NodeInfoDetail{
+		Node:       this.nodes[index].Node,
+		Info:       this.nodes[index].Info,
+		CustomData: this.nodes[index].CustomData,
+	}, nil
 }
 
 //选择一个负载最低的节点

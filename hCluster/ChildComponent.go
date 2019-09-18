@@ -19,6 +19,7 @@ type ChildComponent struct {
 	hEcs.ComponentBase
 	locker          sync.RWMutex
 	localAddr       string
+	netAddr         string
 	rpcMaster       *rpc.TcpClient //master节点
 	nodeComponent   *NodeComponent
 	sysInfo         *pidusage.SysInfo
@@ -79,9 +80,10 @@ func (this *ChildComponent) DoReport() {
 			return this.localAddr != ""
 		})
 	args := &NodeInfo{
-		Address: this.localAddr,
-		Role:    hConfig.Config.ClusterConfig.Role,
-		AppName: hConfig.Config.ClusterConfig.AppName,
+		Address:    this.localAddr,
+		Role:       hConfig.Config.ClusterConfig.Role,
+		AppName:    hConfig.Config.ClusterConfig.AppName,
+		CustomData: map[string]interface{}{"netAddr": this.netAddr},
 	}
 	var reply bool
 	var interval = time.Duration(hConfig.Config.ClusterConfig.ReportInterval)
@@ -146,6 +148,9 @@ func (this *ChildComponent) ConnectToMaster() {
 			ip := strings.Split(this.rpcMaster.LocalAddr(), ":")[0]
 			port := strings.Split(hConfig.Config.ClusterConfig.LocalAddress, ":")[1]
 			this.localAddr = fmt.Sprintf("%s:%s", ip, port)
+			if hCommon.Contains(hConfig.Config.ClusterConfig.Role, "gate") {
+				this.netAddr = hConfig.Config.ClusterConfig.NetListenAddressAlias
+			}
 			this.locker.Unlock()
 			break
 		}
