@@ -136,7 +136,7 @@ func (this *SelectGateComponent) getUsableGate(ctx *gin.Context) {
 	nodeIdGroup, err := this.nodeComponent.GetNodeGroup("gate")
 	if err != nil {
 		hLog.Error("err ", err)
-		_, err := w.WriteString("[ERROR] ==>")
+		_, err := w.WriteString("{\"err\":\"[ERROR] ==>" + err.Error() + "\"}")
 		if err != nil {
 			hLog.Error("No Status Gate {getUsableGate} WriteString fail, ERROR => ", err)
 		}
@@ -147,7 +147,7 @@ func (this *SelectGateComponent) getUsableGate(ctx *gin.Context) {
 
 	if err != nil {
 		hLog.Error("err", err)
-		_, err := w.WriteString("[ERROR] ==>" + err.Error())
+		_, err := w.WriteString("{\"err\":\"[ERROR] ==>" + err.Error() + "\"}")
 		if err != nil {
 			hLog.Error("No Status Gate {getUsableGate} WriteString fail, ERROR => ", err)
 		}

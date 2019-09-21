@@ -79,7 +79,8 @@ func (this *LauncherComponent) Serve() {
 
 	//添加组件到待选组件列表，默认添加master,child组件
 	this.AddComponentGroup("master", []hEcs.IComponent{&hCluster.MasterComponent{}})
-	this.AddComponentGroup("child", []hEcs.IComponent{&hCluster.ChildComponent{}})
+	childComponent := &hCluster.ChildComponent{}
+	this.AddComponentGroup("child", []hEcs.IComponent{childComponent})
 	if hConfig.Config.ClusterConfig.IsLocationMode && len(hConfig.Config.ClusterConfig.Role) > 0 && hConfig.Config.ClusterConfig.Role[0] != "single" {
 		this.AddComponentGroup("location", []hEcs.IComponent{&hCluster.LocationComponent{}})
 	}
@@ -113,6 +114,9 @@ func (this *LauncherComponent) Serve() {
 
 	// 检查连接数量 大于 0 继续服务知道所有的玩家退出游戏
 	if this.checkHandler != nil && !hConfig.Config.CommonConfig.Debug {
+		if childComponent != nil {
+			this.Root().RemoveComponent(childComponent)
+		}
 		hLog.Info("检查连接数量")
 		this.checkHandler()
 	}

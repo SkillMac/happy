@@ -38,7 +38,7 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 10. 添加 负载均衡 算法(随机, Cpu & Mem, 轮询, 加权轮询, p2c, 边界一致性哈希算法（Consistent Hashing with Bounded Loads))
 -- 11. 使用 pm2 保证服务器 岩机重启
 -- 12. 给客户端添加获取 连接 Gate 网关的接口
-13. 添加热更新选择 Gate 节点的算法
+-- 13. 添加热更新选择 Gate 节点的算法
 
 
 // DONE
@@ -53,6 +53,7 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 
 11. 使用 pm2 保证服务器 岩机重启
 12. 给客户端添加获取 连接 Gate 网关的接口(测试完毕)
+13. 添加热更新选择 Gate 节点的算法(测试完毕)
 
 
 # 依赖的库文件

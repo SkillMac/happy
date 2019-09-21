@@ -126,7 +126,11 @@ func (this *ChildComponent) AddReportInfo(field string, collectFunction func() m
 func (this *ChildComponent) ReportClose(addr string) {
 	var reply bool
 	if this.rpcMaster != nil {
-		_ = this.rpcMaster.Call("MasterService.ReportNodeClose", addr, &reply)
+		err := this.rpcMaster.Call("MasterService.ReportNodeClose", addr, &reply)
+		if err != nil {
+			// 呼叫失败
+			hLog.Error("主动呼叫服务器失败 ==> ", err.Error())
+		}
 	}
 }
 
