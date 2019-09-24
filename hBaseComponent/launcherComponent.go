@@ -113,7 +113,7 @@ func (this *LauncherComponent) Serve() {
 	}
 
 	// 检查连接数量 大于 0 继续服务知道所有的玩家退出游戏
-	if hConfig.Config.CommonConfig.Debug {
+	if !hConfig.Config.CommonConfig.Debug {
 		if childComponent != nil {
 			this.Root().RemoveComponent(childComponent)
 		}
