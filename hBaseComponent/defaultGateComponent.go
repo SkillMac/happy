@@ -10,17 +10,22 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type DefaultGateComponent struct {
 	hEcs.ComponentBase
-	locker            sync.RWMutex
-	nodeComponent     *hCluster.NodeComponent
-	launcherComponent *LauncherComponent
-	clients           sync.Map // [sessionID,*session]
-	NetAPI            hNet.ILogicAPI
-	server            *hNet.Server
+	locker        sync.RWMutex
+	nodeComponent *hCluster.NodeComponent
+	//launcherComponent *LauncherComponent
+	clients sync.Map // [sessionID,*session]
+	NetAPI  hNet.ILogicAPI
+	server  *hNet.Server
+
+	acceptNum     int32
+	isCloseServer bool
+	waitGroup     *sync.WaitGroup
 }
 
 func (this *DefaultGateComponent) IsUnique() int {
@@ -36,15 +41,16 @@ func (this *DefaultGateComponent) GetRequire() map[*hEcs.Object][]reflect.Type {
 }
 
 func (this *DefaultGateComponent) Awake(ctx *hEcs.Context) {
+	this.isCloseServer = false
 	err := this.Parent().Root().Find(&this.nodeComponent)
 	if err != nil {
 		panic(err)
 	}
 
-	err = this.Parent().Root().Find(&this.launcherComponent)
-	if err != nil {
-		panic(err)
-	}
+	//err = this.Parent().Root().Find(&this.launcherComponent)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	if this.NetAPI == nil {
 		panic(errors.New("NetAPI is necessity of defaultGateComponent"))
@@ -72,12 +78,20 @@ func (this *DefaultGateComponent) Awake(ctx *hEcs.Context) {
 	}
 
 	//
-	this.launcherComponent.RegisterGateCheckCloseFunc(this.CheckClose)
+	//this.launcherComponent.RegisterGateCheckCloseFunc(this.CheckClose)
 }
 
-func (this *DefaultGateComponent) CheckClose() {
-	fmt.Println("Gate 网关检查关闭")
-	this.server.CheckClose()
+func (this *DefaultGateComponent) CheckClose(group *sync.WaitGroup) {
+	hLog.Info("Gate 网关检查关闭")
+	//this.server.CheckClose()
+	this.locker.RLock()
+	defer this.locker.RUnlock()
+	if atomic.LoadInt32(&this.acceptNum) > 0 {
+		fmt.Println("Gate  ============= CheckClose No")
+		group.Add(1)
+	}
+	this.isCloseServer = true
+	this.waitGroup = group
 }
 
 func (this *DefaultGateComponent) AddNetAPI(api hNet.ILogicAPI) {
@@ -85,12 +99,22 @@ func (this *DefaultGateComponent) AddNetAPI(api hNet.ILogicAPI) {
 }
 
 func (this *DefaultGateComponent) OnConnected(sess *hNet.Session) {
+	atomic.AddInt32(&this.acceptNum, 1)
 	this.clients.Store(sess.Id, sess)
 	this.NetAPI.OnConnect(sess)
 	hLog.Debug(fmt.Sprintf("client [ %s ] connected,session id :[ %s ]", sess.RemoteAddr(), sess.Id))
 }
 
 func (this *DefaultGateComponent) OnDropped(sess *hNet.Session) {
+	defer func() {
+		this.locker.RLock()
+		if this.isCloseServer && atomic.LoadInt32(&this.acceptNum) <= 0 && this.waitGroup != nil {
+			this.waitGroup.Done()
+		}
+		this.locker.RUnlock()
+	}()
+
+	atomic.AddInt32(&this.acceptNum, -1)
 	this.clients.Delete(sess.Id)
 	this.NetAPI.OnDisconnect(sess)
 }

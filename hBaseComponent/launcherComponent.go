@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -26,7 +27,8 @@ type LauncherComponent struct {
 	componentGroup *hCluster.ComponentGroups
 	Config         *hConfig.ConfigComponent
 	Close          chan struct{}
-	checkHandler   func()
+	//checkHandler   func()
+	waitGroup *sync.WaitGroup
 }
 
 func (this *LauncherComponent) IsUnique() int {
@@ -34,6 +36,7 @@ func (this *LauncherComponent) IsUnique() int {
 }
 
 func (this *LauncherComponent) Initialize() error {
+	this.waitGroup = &sync.WaitGroup{}
 	//新建server
 	this.Close = make(chan struct{})
 	this.componentGroup = &hCluster.ComponentGroups{}
@@ -74,9 +77,6 @@ func (this *LauncherComponent) Serve() {
 	//添加ActorProxy组件，组织节点间的通信
 	this.Root().AddComponent(&hActor.ActorProxyComponent{})
 
-	//添加数据库连接组件, 用于数据库的连接
-	this.Root().AddComponent((&ModleComponent{}))
-
 	//添加组件到待选组件列表，默认添加master,child组件
 	this.AddComponentGroup("master", []hEcs.IComponent{&hCluster.MasterComponent{}})
 	childComponent := &hCluster.ChildComponent{}
@@ -113,12 +113,53 @@ func (this *LauncherComponent) Serve() {
 	}
 
 	// 检查连接数量 大于 0 继续服务知道所有的玩家退出游戏
-	if this.checkHandler != nil && !hConfig.Config.CommonConfig.Debug {
+	if hConfig.Config.CommonConfig.Debug {
 		if childComponent != nil {
 			this.Root().RemoveComponent(childComponent)
 		}
-		hLog.Info("检查连接数量")
-		this.checkHandler()
+		//if this.checkHandler != nil {
+		//	hLog.Info("检查连接数量")
+		//	this.checkHandler()
+		//}
+
+		// 检查所有组件服务的状态
+		hLog.Info("检查Root节点下的服务组件是够服务完毕")
+		objs := this.Root().Objects()
+		for val, err := objs.Next(); err == nil; val, err = objs.Next() {
+			obj := val.(*hEcs.Object)
+			allCompts := obj.AllComponents()
+			for component, err := allCompts.Next(); err == nil; component, err = allCompts.Next() {
+				hCommon.Try(func() {
+					if comptL, ok := component.(IBDestroy); ok {
+						comptL.CheckClose(this.waitGroup)
+					}
+				})
+			}
+		}
+
+		hLog.Info("检查所有组件是否服务完毕")
+		allComponents := this.Root().AllComponents()
+		for val, err := allComponents.Next(); err == nil; val, err = allComponents.Next() {
+			hCommon.Try(func() {
+				if component, ok := val.(IBDestroy); ok {
+					fmt.Println(";;;;;;;;;;;;;;;;;;")
+					component.CheckClose(this.waitGroup)
+				}
+			})
+		}
+		this.waitGroup.Wait()
+
+		hLog.Info("===== 所有组件服务完毕, 5秒后关闭服务器 =====")
+		go func() {
+			// 断开Master连接后 继续服务20秒
+			// 用于无状态组件更新
+			time.Sleep(time.Second * 5)
+			this.Close <- struct{}{}
+		}()
+
+		select {
+		case <-this.Close:
+		}
 	}
 
 	hLog.Info("====== Start to close this server, do some cleaning now ...... ======")
@@ -188,6 +229,6 @@ func (this *LauncherComponent) AddComponentGroups(groups map[string][]hEcs.IComp
 	return nil
 }
 
-func (this *LauncherComponent) RegisterGateCheckCloseFunc(handler func()) {
-	this.checkHandler = handler
-}
+//func (this *LauncherComponent) RegisterGateCheckCloseFunc(handler func()) {
+//	this.checkHandler = handler
+//}

@@ -39,6 +39,9 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 -- 11. 使用 pm2 保证服务器 岩机重启
 -- 12. 给客户端添加获取 连接 Gate 网关的接口
 -- 13. 添加热更新选择 Gate 节点的算法
+-- 14. 组件热更新, 处理带状态的热更新
+15. 根据角色选择性添加组件
+16. 依赖组件 安装失败 加入提示
 
 
 // DONE
@@ -54,6 +57,8 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 11. 使用 pm2 保证服务器 岩机重启
 12. 给客户端添加获取 连接 Gate 网关的接口(测试完毕)
 13. 添加热更新选择 Gate 节点的算法(测试完毕)
+
+14. 组件热更新, 处理带状态的热更新(未测试)
 
 
 # 依赖的库文件
