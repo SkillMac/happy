@@ -84,10 +84,10 @@ func (this *DefaultGateComponent) Awake(ctx *hEcs.Context) {
 func (this *DefaultGateComponent) CheckClose(group *sync.WaitGroup) {
 	hLog.Info("Gate 网关检查关闭")
 	//this.server.CheckClose()
-	this.locker.RLock()
-	defer this.locker.RUnlock()
+	this.locker.Lock()
+	defer this.locker.Unlock()
 	if atomic.LoadInt32(&this.acceptNum) > 0 {
-		fmt.Println("Gate  ============= CheckClose No")
+		hLog.Info("Gate  ============= CheckClose No")
 		group.Add(1)
 	}
 	this.isCloseServer = true
