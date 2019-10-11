@@ -44,6 +44,9 @@ func (this *LauncherComponent) Initialize() error {
 	//读取配置文件，初始化配置
 	this.Root().AddComponent(&hConfig.ConfigComponent{})
 
+	// 添加数据库连接
+	this.Root().AddComponent(&ModleComponent{})
+
 	//缓存配置文件
 	this.Config = hConfig.Config
 

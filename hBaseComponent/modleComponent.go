@@ -51,7 +51,8 @@ func (this *ModleComponent) initMongoDB() {
 		hConfig.Config.CustomConfig.Mongo.DbUser,
 		hConfig.Config.CustomConfig.Mongo.DbPass,
 	), 5*time.Second)
-	this.M.OpenDB(func(ms *mgo.Session) {
+
+	_ = this.M.OpenDB(func(ms *mgo.Session) {
 		// 一个连接大概占10M
 		ms.SetPoolLimit((50))
 	})
