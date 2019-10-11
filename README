@@ -67,3 +67,5 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 |-|github.com/go-gomail/gomail|
 |-|github.com/struCoder/pidusage|
 |-|github.com/bwmarrin/snowflake|
+|-|github.com/golang/protobuf/proto|
+|-|github.com/golang/protobuf/protoc-gen-go|
