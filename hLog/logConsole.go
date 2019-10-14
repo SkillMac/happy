@@ -98,6 +98,7 @@ func (this *logConsole) setRollingFile(dir, fileName string, maxFileSize int64, 
 	}
 	this.maxFileSize = maxFileSize
 	this.rolltype = ROLLFILE
+	CURRENT_LOG_MODE = this.rolltype
 	mkdirLog(dir)
 	var _suffix = 0
 	for i := 1; i < int(maxFileSize); i++ {
@@ -113,6 +114,7 @@ func (this *logConsole) setRollingFile(dir, fileName string, maxFileSize int64, 
 
 func (this *logConsole) setRollingDaily(dir, fileName string) {
 	this.rolltype = DAILY
+	CURRENT_LOG_MODE = this.rolltype
 	this.id = md5str(fmt.Sprint(dir, fileName))
 	lfl.add(dir, fileName, 0, 0, 0)
 }

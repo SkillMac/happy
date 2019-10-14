@@ -30,6 +30,7 @@ const (
 )
 
 const _DATEFORMAT = "2006-01-02"
+const _NEWFILEFORMAT = "%s-%s.log"
 
 var SKIP = 4
 
@@ -37,6 +38,8 @@ const (
 	DAILY ROLLTYPE = iota
 	ROLLFILE
 )
+
+var CURRENT_LOG_MODE = DAILY
 
 func md5str(s string) string {
 	m := md5.New()

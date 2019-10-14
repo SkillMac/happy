@@ -65,11 +65,16 @@ func (this *LauncherComponent) Initialize() error {
 	//log设置
 	switch hConfig.Config.CommonConfig.LogMode {
 	case hLog.DAILY:
-		hLog.SetRollingDaily(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.AppName+".log")
+		hLog.SetRollingDaily(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.AppName)
 	case hLog.ROLLFILE:
-		hLog.SetRollingFile(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.AppName+".log", hConfig.Config.CommonConfig.LogFileSizeMax*hLog.MB, hConfig.Config.CommonConfig.LogFileMax)
+		hLog.SetRollingFile(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.AppName, hConfig.Config.CommonConfig.LogFileSizeMax*hLog.MB, hConfig.Config.CommonConfig.LogFileMax)
 	}
 	hLog.SetLevel(hConfig.Config.CommonConfig.LogLevel)
+
+	hLog.SetLevelFile(hLog.INFO, "./log", "info")
+	hLog.SetLevelFile(hLog.WARN, "./log", "warn")
+	hLog.SetLevelFile(hLog.ERROR, "./log", "error")
+	hLog.SetLevelFile(hLog.FATAL, "./log", "fatal")
 	return nil
 }
 

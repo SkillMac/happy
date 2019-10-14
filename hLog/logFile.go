@@ -34,12 +34,20 @@ func (this *logFile) nextSuffix() int {
 func newLogFile(dir, fileName string, _suffix int, maxFileSize int64, maxFileCount int32) (lf *logFile) {
 	t, _ := time.Parse(_DATEFORMAT, time.Now().Format(_DATEFORMAT))
 	lf = &logFile{dir: dir, fileName: fileName, rwMutex: new(sync.RWMutex)}
-	lf.logFile, _ = os.OpenFile(dir+"/"+fileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+
+	nowFileName := ""
+	if CURRENT_LOG_MODE == DAILY {
+		nowFileName = fmt.Sprintf(_NEWFILEFORMAT, fileName, t.Format(_DATEFORMAT))
+	} else {
+		nowFileName = fileName + ".log"
+	}
+
+	lf.logFile, _ = os.OpenFile(dir+"/"+nowFileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	lf.lg = log.New(lf.logFile, "", log.Ldate|log.Ltime|log.Lshortfile)
 	lf._suffix = _suffix
 	lf.maxFileCount = maxFileCount
 	lf.maxFileSize = maxFileSize
-	lf.filesSize = getFileSize(dir + "/" + fileName)
+	lf.filesSize = getFileSize(dir + "/" + nowFileName)
 	lf._date = &t
 	return
 }
@@ -51,15 +59,15 @@ func (this *logFile) rename(rolltype ROLLTYPE) {
 	nextFileName := ""
 	switch rolltype {
 	case DAILY:
-		nextFileName = fmt.Sprint(this.dir, "/", this.fileName, ".", this._date.Format(_DATEFORMAT))
+		nextFileName = fmt.Sprint(this.dir, "/", fmt.Sprintf(_NEWFILEFORMAT, this.fileName, this._date.Format(_DATEFORMAT)))
 	case ROLLFILE:
-		nextFileName = fmt.Sprint(this.dir, "/", this.fileName, ".", this.nextSuffix())
+		nextFileName = fmt.Sprint(this.dir, "/", this.fileName, ".", this.nextSuffix(), ".log")
 		this._suffix = this.nextSuffix()
 	}
 	if isExist(nextFileName) {
 		os.Remove(nextFileName)
 	}
-	os.Rename(this.dir+"/"+this.fileName, nextFileName)
+	os.Rename(this.dir+"/"+this.fileName+"./log", nextFileName)
 	t, _ := time.Parse(_DATEFORMAT, time.Now().Format(_DATEFORMAT))
 	this._date = &t
 	this.logFile, _ = os.OpenFile(this.dir+"/"+this.fileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
