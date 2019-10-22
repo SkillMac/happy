@@ -85,11 +85,11 @@ func (this *MasterComponent) NodeClose(addr string) {
 			s.WriteString("  ")
 		}
 		hLog.Info(fmt.Sprintf("Node [ %s ] disconnected, roles: [ %s ]", addr, s.String()))
-		if !hConfig.Config.CommonConfig.Debug {
-			body := fmt.Sprintf(`IP [ %s ] 断开连接<br>
-			Role [ %s ]`, addr, s.String())
-			hCommon.SendEmail(fmt.Sprintf("节点断开连接 [ %s]", s.String()), body)
-		}
+		//if !hConfig.Config.CommonConfig.Debug {
+		//	body := fmt.Sprintf(`IP [ %s ] 断开连接<br>
+		//	Role [ %s ]`, addr, s.String())
+		//	hCommon.SendEmail(fmt.Sprintf("节点断开连接 [ %s]", s.String()), body)
+		//}
 	}
 	delete(this.Nodes, addr)
 	delete(this.timeoutChecking, addr)
