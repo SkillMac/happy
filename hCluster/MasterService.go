@@ -73,6 +73,21 @@ func (this *MasterService) NodeInfoSync(args string, reply *NodeInfoSyncReply) e
 	return nil
 }
 
+func (this *MasterService) SetNodeStatus(args []string, reply *bool) error {
+	this.master.SetNodeStatus(args[0], args[1])
+	return nil
+}
+
+func (this *MasterService) GetNodeStatus(args string, reply *string) error {
+	*reply = this.master.GetNodeStatus(args)
+	return nil
+}
+
+func (this *MasterService) GetAllNodeStatus(args string, reply *map[string]string) error {
+	*reply = this.master.GetALLNodeStatus()
+	return nil
+}
+
 type NodeLog struct {
 	Time int64
 	Log  string

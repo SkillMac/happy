@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+/*
+* 可能会因为更新不及时 导致 连接失败,  暂时不用
+ */
 type LocationReply struct {
 	NodeNetAddress map[string]string //[node id , ip]
 }
@@ -72,7 +75,9 @@ func (this *LocationComponent) DoLocationSync() {
 			this.master = nil
 			continue
 		}
+
 		this.locker.Lock()
+		this.UpdateBL(this.Nodes, reply.Nodes)
 		this.Nodes = reply.Nodes
 		this.NodeLog = reply.NodeLog
 		this.locker.Unlock()
@@ -97,4 +102,37 @@ func (this *LocationComponent) NodeLogInquiry(args int64) ([]*NodeLog, error) {
 		return nil, errors.New("this location node is waiting to sync")
 	}
 	return this.NodeLog.Get(args), nil
+}
+
+func (this *LocationComponent) UpdateBL(curNodes map[string]*NodeInfo, nextNodes map[string]*NodeInfo) {
+	if curNodes == nil {
+		// 直接添加
+		for addr, _ := range nextNodes {
+			this.NodeOpen(addr)
+		}
+		return
+	}
+	for addr, _ := range curNodes {
+		if _, ok := nextNodes[addr]; !ok {
+			this.NodeClose(addr)
+		}
+	}
+
+	for addr, _ := range nextNodes {
+		if _, ok := curNodes[addr]; !ok {
+			this.NodeOpen(addr)
+		}
+	}
+}
+
+func (this *LocationComponent) NodeOpen(addr string) {
+	r2LB.Add(addr)
+	p2cLB.Add(addr)
+	boundedLB.Add(addr)
+}
+
+func (this *LocationComponent) NodeClose(addr string) {
+	r2LB.Remove(addr)
+	p2cLB.Remove(addr)
+	boundedLB.Remove(addr)
 }

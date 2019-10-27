@@ -43,12 +43,12 @@ func init() {
 	} else {
 		prand.Seed(r.Int64())
 	}
-	globalUUID = &lockedUUID{UUID: New()}
+	globalUUID = &lockedUUID{UUID: NewUUID()}
 	globalUUID.RandomizePrefix()
 }
 
 // New will generate a new UUID and properly initialize the prefix, sequential start, and sequential increment.
-func New() *UUID {
+func NewUUID() *UUID {
 	n := &UUID{
 		seq: prand.Int63n(maxSeq),
 		inc: minInc + prand.Int63n(maxInc-minInc),

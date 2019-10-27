@@ -83,7 +83,7 @@ func (this *ChildComponent) DoReport() {
 		Address:    this.localAddr,
 		Role:       hConfig.Config.ClusterConfig.Role,
 		AppName:    hConfig.Config.ClusterConfig.AppName,
-		CustomData: map[string]interface{}{"netAddr": this.netAddr},
+		CustomData: map[string]interface{}{"netAddr": this.netAddr, "workName": hConfig.Config.ClusterConfig.WorkName},
 	}
 	var reply bool
 	var interval = time.Duration(hConfig.Config.ClusterConfig.ReportInterval)

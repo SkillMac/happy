@@ -16,11 +16,19 @@ const (
 	LOG_TYPE_NODE_CLOSE = iota
 )
 
+const (
+	NODE_STAUTE_OFFLINE      string = "Offline"
+	NODE_STAUTE_ONLINE       string = "Online"
+	NODE_STAUTE_WEBCLOSE     string = "WebClose"
+	NODE_STAUTE_WAITPM2CLOSE string = "WaitPm2Close"
+)
+
 type MasterComponent struct {
 	hEcs.ComponentBase
 	locker          *sync.RWMutex
 	nodeComponent   *NodeComponent
 	Nodes           map[string]*NodeInfo
+	NodeStatus      map[string]string // Offline | Online | Web Close | Wait Pm2 Close
 	NodeLog         *NodeLogs
 	timeoutChecking map[string]int
 }
@@ -37,6 +45,7 @@ func (this *MasterComponent) GetRequire() map[*hEcs.Object][]reflect.Type {
 func (this *MasterComponent) Awake(ctx *hEcs.Context) {
 	this.locker = &sync.RWMutex{}
 	this.Nodes = make(map[string]*NodeInfo)
+	this.NodeStatus = make(map[string]string)
 	this.NodeLog = &NodeLogs{BufferSize: 20}
 	this.timeoutChecking = make(map[string]int)
 
@@ -52,7 +61,7 @@ func (this *MasterComponent) Awake(ctx *hEcs.Context) {
 	if err != nil {
 		panic(err)
 	}
-	if !hConfig.Config.CommonConfig.Debug || false {
+	if !hConfig.Config.CommonConfig.Debug {
 		go this.TimeoutCheck()
 	}
 }
@@ -66,10 +75,14 @@ func (this *MasterComponent) UpdateNodeInfo(args *NodeInfo) {
 			s.WriteString(value)
 			s.WriteString("  ")
 		}
+		r2LB.Add(args.Address)
+		p2cLB.Add(args.Address)
+		boundedLB.Add(args.Address)
 		hLog.Info(fmt.Sprintf("Node [ %s ] connected to this master, roles: [ %s]", args.Address, s.String()))
 	}
 	args.Time = time.Now().UnixNano()
 	this.Nodes[args.Address] = args
+	this.NodeStatus[args.Address] = NODE_STAUTE_ONLINE
 	this.timeoutChecking[args.Address] = 0
 
 	this.locker.Unlock()
@@ -84,6 +97,9 @@ func (this *MasterComponent) NodeClose(addr string) {
 			s.WriteString(value)
 			s.WriteString("  ")
 		}
+		r2LB.Remove(addr)
+		p2cLB.Remove(addr)
+		boundedLB.Remove(addr)
 		hLog.Info(fmt.Sprintf("Node [ %s ] disconnected, roles: [ %s ]", addr, s.String()))
 		//if !hConfig.Config.CommonConfig.Debug {
 		//	body := fmt.Sprintf(`IP [ %s ] 断开连接<br>
@@ -92,6 +108,7 @@ func (this *MasterComponent) NodeClose(addr string) {
 		//}
 	}
 	delete(this.Nodes, addr)
+	delete(this.NodeStatus, addr)
 	delete(this.timeoutChecking, addr)
 	this.NodeLog.Add(&NodeLog{
 		Time: time.Now().UnixNano(),
@@ -132,4 +149,31 @@ func (this *MasterComponent) NodesLogsCopy() *NodeLogs {
 	this.locker.RLock()
 	defer this.locker.RUnlock()
 	return hCommon.Copy(this.NodeLog).(*NodeLogs)
+}
+
+// 设置节点状态
+
+func (this *MasterComponent) SetNodeStatus(addr, status string) {
+	this.locker.Lock()
+	defer this.locker.Unlock()
+
+	this.NodeStatus[addr] = status
+}
+
+func (this *MasterComponent) GetNodeStatus(addr string) string {
+	this.locker.RLock()
+	defer this.locker.RUnlock()
+
+	if _, ok := this.NodeStatus[addr]; ok {
+		return this.NodeStatus[addr]
+	}
+
+	return NODE_STAUTE_OFFLINE
+}
+
+func (this *MasterComponent) GetALLNodeStatus() map[string]string {
+	this.locker.RLock()
+	defer this.locker.RUnlock()
+
+	return this.NodeStatus
 }

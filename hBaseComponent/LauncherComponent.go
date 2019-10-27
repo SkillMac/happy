@@ -28,7 +28,9 @@ type LauncherComponent struct {
 	Config         *hConfig.ConfigComponent
 	Close          chan struct{}
 	//checkHandler   func()
-	waitGroup *sync.WaitGroup
+	waitGroup     *sync.WaitGroup
+	nodeComponent *hCluster.NodeComponent
+	master        *rpc.TcpClient
 }
 
 func (this *LauncherComponent) IsUnique() int {
@@ -41,11 +43,8 @@ func (this *LauncherComponent) Initialize() error {
 	this.Close = make(chan struct{})
 	this.componentGroup = &hCluster.ComponentGroups{}
 
-	//读取配置文件，初始化配置
-	this.Root().AddComponent(&hConfig.ConfigComponent{})
-
-	// 添加数据库连接
-	this.Root().AddComponent(&ModleComponent{})
+	////读取配置文件，初始化配置
+	//this.Root().AddComponent(&hConfig.ConfigComponent{})
 
 	//缓存配置文件
 	this.Config = hConfig.Config
@@ -65,22 +64,37 @@ func (this *LauncherComponent) Initialize() error {
 	//log设置
 	switch hConfig.Config.CommonConfig.LogMode {
 	case hLog.DAILY:
-		hLog.SetRollingDaily(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.AppName)
+		hLog.SetRollingDaily(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.WorkName)
 	case hLog.ROLLFILE:
-		hLog.SetRollingFile(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.AppName, hConfig.Config.CommonConfig.LogFileSizeMax*hLog.MB, hConfig.Config.CommonConfig.LogFileMax)
+		hLog.SetRollingFile(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.WorkName, hConfig.Config.CommonConfig.LogFileSizeMax*hLog.MB, hConfig.Config.CommonConfig.LogFileMax)
 	}
 	hLog.SetLevel(hConfig.Config.CommonConfig.LogLevel)
 
-	hLog.SetLevelFile(hLog.INFO, "./log", "info")
-	hLog.SetLevelFile(hLog.WARN, "./log", "warn")
-	hLog.SetLevelFile(hLog.ERROR, "./log", "error")
-	hLog.SetLevelFile(hLog.FATAL, "./log", "fatal")
+	hLog.SetLevelFile(hLog.INFO, "./log", hConfig.Config.ClusterConfig.WorkName+"-info")
+	hLog.SetLevelFile(hLog.WARN, "./log", hConfig.Config.ClusterConfig.WorkName+"-warn")
+	hLog.SetLevelFile(hLog.ERROR, "./log", hConfig.Config.ClusterConfig.WorkName+"-error")
+	hLog.SetLevelFile(hLog.FATAL, "./log", hConfig.Config.ClusterConfig.WorkName+"-fatal")
+
 	return nil
+}
+
+func (this *LauncherComponent) registerService() {
+
+	s := new(LauncherService)
+	s.init(this)
+	err := this.nodeComponent.Register(s)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (this *LauncherComponent) Serve() {
 	//添加NodeComponent组件，使对象成为分布式节点
-	this.Root().AddComponent(&hCluster.NodeComponent{})
+	this.nodeComponent = &hCluster.NodeComponent{}
+	this.Root().AddComponent(this.nodeComponent)
+
+	this.CheckNodeStatus()
+	this.registerService()
 
 	//添加ActorProxy组件，组织节点间的通信
 	this.Root().AddComponent(&hActor.ActorProxyComponent{})
@@ -96,6 +110,13 @@ func (this *LauncherComponent) Serve() {
 	//处理single模式
 	if len(hConfig.Config.ClusterConfig.Role) == 0 || hConfig.Config.ClusterConfig.Role[0] == "single" {
 		hConfig.Config.ClusterConfig.Role = this.componentGroup.AllGroupsName()
+		hConfig.Config.ClusterConfig.Role = append(hConfig.Config.ClusterConfig.Role, "modle")
+	}
+
+	// 添加数据库连接
+	if hCommon.Contains(this.Config.ClusterConfig.Role, "modle") {
+		// 有 gate 角色才添加
+		this.Root().AddComponent(&ModleComponent{})
 	}
 
 	//添加基础组件组,一般通过组建组的定义决定服务器节点的服务角色
@@ -132,9 +153,12 @@ func (this *LauncherComponent) Serve() {
 
 		// 检查所有组件服务的状态
 		hLog.Info("检查Root节点下的服务组件是够服务完毕")
-		objs := this.Root().Objects()
-		for val, err := objs.Next(); err == nil; val, err = objs.Next() {
-			obj := val.(*hEcs.Object)
+		for i := 0; i < len(this.Config.ClusterConfig.Role); i++ {
+			obj, err := this.Root().GetObject(this.Config.ClusterConfig.Role[i])
+			if err != nil {
+				continue
+			}
+
 			allCompts := obj.AllComponents()
 			for component, err := allCompts.Next(); err == nil; component, err = allCompts.Next() {
 				hCommon.Try(func() {
@@ -170,6 +194,17 @@ func (this *LauncherComponent) Serve() {
 		}
 	}
 
+	client, err := this.GetMasterClient()
+
+	if err == nil {
+		var reply string
+		_ = client.Call("MasterService.GetNodeStatus", hConfig.Config.ClusterConfig.LocalAddress, &reply)
+
+		if reply == hCluster.NODE_STAUTE_WEBCLOSE {
+			_ = client.CallWithoutReply("MasterService.SetNodeStatus", []string{hConfig.Config.ClusterConfig.LocalAddress, hCluster.NODE_STAUTE_WAITPM2CLOSE})
+		}
+	}
+
 	hLog.Info("====== Start to close this server, do some cleaning now ...... ======")
 	//do something else
 	err = this.Root().Destroy()
@@ -186,6 +221,7 @@ func (this *LauncherComponent) OverrideNodeDefine(nodeConfName string) {
 		panic(ErrServerNotInit)
 	}
 	if s, ok := this.Config.ClusterConfig.NodeDefine[nodeConfName]; ok {
+		this.Config.ClusterConfig.WorkName = nodeConfName
 		this.Config.ClusterConfig.LocalAddress = s.LocalAddress
 		this.Config.ClusterConfig.Role = s.Role
 		if s.NetAddr.Alias != "" {
@@ -235,6 +271,31 @@ func (this *LauncherComponent) AddComponentGroups(groups map[string][]hEcs.IComp
 		this.componentGroup.AddGroup(groupName, group)
 	}
 	return nil
+}
+
+func (this *LauncherComponent) GetMasterClient() (*rpc.TcpClient, error) {
+	if this.master == nil {
+		var err error
+		this.master, err = this.nodeComponent.GetNodeClient(hConfig.Config.ClusterConfig.MasterAddress)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	return this.master, nil
+}
+
+func (this *LauncherComponent) CheckNodeStatus() {
+	client, err := this.GetMasterClient()
+
+	if err == nil {
+		var reply string
+		_ = client.Call("MasterService.GetNodeStatus", hConfig.Config.ClusterConfig.LocalAddress, &reply)
+		if reply == hCluster.NODE_STAUTE_WAITPM2CLOSE {
+			// 阻塞
+			<-this.Close
+		}
+	}
 }
 
 //func (this *LauncherComponent) RegisterGateCheckCloseFunc(handler func()) {

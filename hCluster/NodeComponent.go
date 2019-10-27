@@ -250,6 +250,7 @@ func (this *NodeComponent) GetNodeGroup(role string) (*NodeIDGroup, error) {
 
 	//位置服务器不存在或不可用时在master上查询
 	nodeIDGroup, err = this.GetNodeGroupFromMaster(role)
+
 	if err != nil {
 		return nil, err
 	}
@@ -277,10 +278,11 @@ func (this *NodeComponent) GetNodeFromLocation(role string, selectorType ...Sele
 
 	var reply *[]*InquiryReply
 	args := []string{
-		SELECTOR_TYPE_DEFAULT, hConfig.Config.ClusterConfig.AppName, role,
+		hConfig.Config.ClusterConfig.AppName, role, SELECTOR_TYPE_DEFAULT, "",
 	}
-	if len(selectorType) > 0 {
-		args[0] = selectorType[0]
+
+	for i := 0; i < len(selectorType); i++ {
+		args[2+i] = selectorType[i]
 	}
 
 	err = client.Call("LocationService.NodeInquiry", args, &reply)
@@ -316,7 +318,7 @@ func (this *NodeComponent) GetNodeGroupFromLocation(role string) (*NodeIDGroup, 
 
 	var reply *[]*InquiryReply
 	args := []string{
-		SELECTOR_TYPE_GROUP, hConfig.Config.ClusterConfig.AppName, role,
+		hConfig.Config.ClusterConfig.AppName, role, SELECTOR_TYPE_GROUP,
 	}
 	err = client.Call("LocationService.NodeInquiry", args, &reply)
 	if err != nil {
@@ -341,11 +343,13 @@ func (this *NodeComponent) GetNodeFromMaster(role string, selectorType ...Select
 	}
 	var reply *[]*InquiryReply
 	args := []string{
-		SELECTOR_TYPE_DEFAULT, hConfig.Config.ClusterConfig.AppName, role,
+		hConfig.Config.ClusterConfig.AppName, role, SELECTOR_TYPE_DEFAULT, "",
 	}
-	if len(selectorType) > 0 {
-		args[0] = selectorType[0]
+
+	for i := 0; i < len(selectorType); i++ {
+		args[2+i] = selectorType[i]
 	}
+
 	err = client.Call("MasterService.NodeInquiry", args, &reply)
 	if err != nil {
 		return nil, err
@@ -372,7 +376,7 @@ func (this *NodeComponent) GetNodeGroupFromMaster(role string) (*NodeIDGroup, er
 	}
 	var reply *[]*InquiryReply
 	args := []string{
-		SELECTOR_TYPE_GROUP, hConfig.Config.ClusterConfig.AppName, role,
+		hConfig.Config.ClusterConfig.AppName, role, SELECTOR_TYPE_GROUP,
 	}
 	err = client.Call("MasterService.NodeInquiry", args, &reply)
 	if err != nil {

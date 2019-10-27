@@ -1,4 +1,8 @@
 # [开发日志]
+2019年10月22日
+1.各个节点日志分开 互不干扰
+2.无状态组件添加获取节点信息的接口
+
 2019年09月12日
 1. 路由层添加延时呼叫 远程节点的接口  CallWait ,, 用法和 Call 用法保持一致
 2. 优化日志输出格式 在每天输出的前面添加 这条输出是哪个打印开头的 例如 [info] xxx
@@ -64,9 +68,11 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 # 依赖的库文件
 | 名字 | 地址|
 | -- | -- |
+
 |-|github.com/go-gomail/gomail|
 |-|github.com/struCoder/pidusage|
 |-|github.com/bwmarrin/snowflake|
 |-|github.com/golang/protobuf/proto|
 |-|github.com/golang/protobuf/protoc-gen-go|
 |-|github.com/XanthusL/zset|
+|-|https://github.com/lafikl/liblb|

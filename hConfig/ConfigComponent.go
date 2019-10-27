@@ -123,6 +123,7 @@ func (this *ConfigComponent) SetDefault() {
 		MasterAddress: "127.0.0.1:6666",
 		LocalAddress:  "127.0.0.1:6666",
 		AppName:       "defaultApp",
+		WorkName:      "defaultWork",
 		Role:          []string{"single"},
 		NodeDefine: map[string]Node{
 			/*
@@ -208,6 +209,7 @@ type ClusterConfig struct {
 	MasterAddress string   //Master 地址,例如:127.0.0.1:8888
 	LocalAddress  string   //本节点IP,注意配置文件时，填写正确的局域网地址或者外网地址，不可为0.0.0.0
 	AppName       string   //本节点拥有的app
+	WorkName      string   // 运行当前app 的 work 名字
 	Role          []string //本节点拥有角色
 	NodeDefine    map[string]Node
 

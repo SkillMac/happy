@@ -8,7 +8,6 @@ import (
 	"custom/happy/hLog"
 	"custom/happy/hRpc"
 	"errors"
-	"fmt"
 	"reflect"
 	"sync"
 )
@@ -86,7 +85,7 @@ func (this *ActorProxyComponent) GetLocalActorService(serviceName string) (*Acto
 }
 
 //获取actor服务
-func (this *ActorProxyComponent) GetActorService(role string, serviceName string) (*ActorService, error) {
+func (this *ActorProxyComponent) GetActorService(role string, serviceName string, selectorType ...hCluster.SelectorType) (*ActorService, error) {
 	var service *ActorService
 	var err error
 	//优先尝试本地服务
@@ -99,7 +98,24 @@ func (this *ActorProxyComponent) GetActorService(role string, serviceName string
 	if role == LOCAL_SERVICE {
 		return nil, errors.New("role is empty")
 	}
-	client, err := this.nodeComponent.GetNodeClientByRole(role)
+	client, err := this.nodeComponent.GetNodeClientByRole(role, selectorType...)
+	if err != nil {
+		return nil, err
+	}
+	var reply ActorID
+	err = client.Call("ActorProxyService.ServiceInquiry", serviceName, &reply)
+	if err != nil {
+		return nil, err
+	}
+	return NewActorService(NewActor(reply, this), serviceName), nil
+}
+
+func (this *ActorProxyComponent) GetRemoteActorService(role string, serviceName string, selectorType ...hCluster.SelectorType) (*ActorService, error) {
+	//获取远程服务
+	if role == LOCAL_SERVICE {
+		return nil, errors.New("role is empty")
+	}
+	client, err := this.nodeComponent.GetNodeClientByRole(role, selectorType...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,11 +177,11 @@ func (this *ActorProxyComponent) LocalTell(actorID ActorID, messageInfo *ActorMe
 
 //通过actor id 发送消息
 func (this *ActorProxyComponent) Emit(actorID ActorID, messageInfo *ActorMessageInfo) error {
-	senderID := "unknown"
-	if messageInfo.Sender != nil {
-		senderID = messageInfo.Sender.ID().String()
-	}
-	hLog.Debug(fmt.Sprintf("actor: [ %s ] send message [ %s ] to actor [ %s ]", senderID, messageInfo.Message.Service, actorID.String()))
+	//senderID := "unknown"
+	//if messageInfo.Sender != nil {
+	//	senderID = messageInfo.Sender.ID().String()
+	//}
+	//hLog.Debug(fmt.Sprintf("actor: [ %s ] send message [ %s ] to actor [ %s ]", senderID, messageInfo.Message.Service, actorID.String()))
 	nodeID := actorID.GetNodeID()
 
 	//本地消息不走网络
