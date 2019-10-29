@@ -3,7 +3,6 @@ package hCluster
 import (
 	"custom/happy/hCommon"
 	"errors"
-	"fmt"
 	"github.com/lafikl/liblb/bounded"
 	"github.com/lafikl/liblb/p2c"
 	"github.com/lafikl/liblb/r2"
@@ -20,6 +19,7 @@ const (
 	SELECTOR_TYPE_P2C               SelectorType = "P2C"
 	SELECTOR_TYPE_CONST_HASHING_BL  SelectorType = "ConstHashingBoundLoad"
 	SELECTOR_TYPE_CONST_HASHING_BLW SelectorType = "ConstHashingBoundLoadWithWeight"
+	SELECTOR_TYPE_SPECIAL_IP        SelectorType = "SpecialIp"
 )
 
 type SelectorType = string
@@ -102,8 +102,6 @@ func (this SourceGroup) CHashingBL(key string) int {
 		return -1
 	}
 
-	fmt.Println("lllllllllllllllllllllll", host)
-
 	for i, info := range this {
 		if host == info.Node {
 			return i
@@ -115,6 +113,15 @@ func (this SourceGroup) CHashingBL(key string) int {
 
 func (this SourceGroup) CHashingBLW(key string) int {
 	return 0
+}
+
+func (this SourceGroup) SpecialIP(host string) int {
+	for i, info := range this {
+		if host == info.Node {
+		}
+		return i
+	}
+	return -1
 }
 
 func (this SourceGroup) DoQuery(selectorType SelectorType) int {
@@ -220,7 +227,15 @@ func (this Selector) DoQuery(query []string, detail bool, locker *sync.RWMutex, 
 		} else if index != -1 {
 			reply = []*InquiryReply{reply[index]}
 		}
+	case SELECTOR_TYPE_SPECIAL_IP:
+		var index = SourceGroup(reply).SpecialIP(query[3])
+		if index == -1 {
+			err = errors.New("[Select-DoQuery] SpecialIP index = -1")
+		} else if index != -1 {
+			reply = []*InquiryReply{reply[index]}
+		}
 	default:
+		err = errors.New("[Select-DoQuery] Select type unknown")
 	}
 	return reply, err
 }
