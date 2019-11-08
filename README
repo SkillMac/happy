@@ -1,70 +1,3 @@
-# [开发日志]
-2019年10月22日
-1.各个节点日志分开 互不干扰
-2.无状态组件添加获取节点信息的接口
-
-2019年09月12日
-1. 路由层添加延时呼叫 远程节点的接口  CallWait ,, 用法和 Call 用法保持一致
-2. 优化日志输出格式 在每天输出的前面添加 这条输出是哪个打印开头的 例如 [info] xxx
-3. 负载均衡添加 随机搜索节点方法
-4. 工具层添加 随机数的方法
-
-# 注意
-
-## 需要将逻辑逻辑分布式部署 在 main 函数里面写
-```go
-launcher.AddComponentGroup("login", []hEcs.IComponent{&logicComponents.LoginComponent{}})
-```
-可将其中的 login 换位其他逻辑 里面的组件同样的道理
-
-## 路由层
-```
-reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, message.Nickname)
-```
-最后一个参数不允许传递结构体过去, 只能是常用的数据类型
-
-## 是否判断会话关闭
-
-这里不需要在判断 会话关闭了 将这个判断移交到了框架里面
-
-
-
-// TODO
--- 1. 在关闭服务器的时候 等待全部玩家退出后 结束服务
--- 2. 优化 RPC 延时回调 导致 逻辑不可拆除问题
--- 3. 远程呼叫的时候可以传结构体
-4. 创建 Redis 连接库
--- 5. 在 master 节点行添加 获取gate网关的逻辑 开启一个无状态的 gate 网关
--- 6. 添加服务器关掉 发送邮件
-7. 添加后台服务
--- 8. 优化 log 输出格式
--- 9. 添加计算 当前服务器 的使用内存 和 cpu 的使用量
-10. 添加 负载均衡 算法(随机, Cpu & Mem, 轮询, 加权轮询, p2c, 边界一致性哈希算法（Consistent Hashing with Bounded Loads))
--- 11. 使用 pm2 保证服务器 岩机重启
--- 12. 给客户端添加获取 连接 Gate 网关的接口
--- 13. 添加热更新选择 Gate 节点的算法
--- 14. 组件热更新, 处理带状态的热更新
-15. 根据角色选择性添加组件
-16. 依赖组件 安装失败 加入提示
-
-
-// DONE
-1. 在关闭服务器的时候 等待全部玩家退出后 结束服务(测试完毕)
-2. 优化 RPC 延时回调 导致 逻辑不可拆除问题(测试完毕)
-3. 远程呼叫的时候可以传结构体(测试完毕)
-5. 在 master 节点行添加 获取gate网关的逻辑 开启一个无状态的 gate 网关(测试完毕)
-6. 添加服务器关掉 发送邮件(测试完毕)
-8. 优化 log 输出格式, 在日志和控制台中输出标识 例如[info](测试完毕)
-9. 添加计算 当前服务器 的使用内存 和 cpu 的使用量(测试完毕)
-10. 随机(测试完毕), Cpu & Mem(测试完毕),
-
-11. 使用 pm2 保证服务器 岩机重启
-12. 给客户端添加获取 连接 Gate 网关的接口(测试完毕)
-13. 添加热更新选择 Gate 节点的算法(测试完毕)
-
-14. 组件热更新, 处理带状态的热更新(未测试)
-
-
 # 依赖的库文件
 | 名字 | 地址|
 | -- | -- |
@@ -75,4 +8,6 @@ reply, err := serviceCaller.Call("login", logicComponents.Service_Login_Login, m
 |-|github.com/golang/protobuf/proto|
 |-|github.com/golang/protobuf/protoc-gen-go|
 |-|github.com/XanthusL/zset|
-|-|https://github.com/lafikl/liblb|
+|-|github.com/lafikl/liblb|
+|-|github.com/natefinch/lumberjack|
+|-|github.com/op/go-logging|

@@ -1,125 +1,87 @@
 package hLog
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
+	"github.com/natefinch/lumberjack"
+	"github.com/op/go-logging"
 	"os"
-	"runtime/debug"
 )
 
-type LEVEL int32
-type ROLLTYPE int
+/*
+type Password string
 
-const (
-	_        = iota
-	KB int64 = 1 << (iota * 10)
-	MB
-	GB
-	TB
-)
-
-const (
-	ALL LEVEL = iota
-	DEBUG
-	INFO
-	WARN
-	ERROR
-	FATAL
-	OFF
-)
-
-const _DATEFORMAT = "2006-01-02"
-const _NEWFILEFORMAT = "%s-%s.log"
-
-var SKIP = 4
-
-const (
-	DAILY ROLLTYPE = iota
-	ROLLFILE
-)
-
-var CURRENT_LOG_MODE = DAILY
-
-func md5str(s string) string {
-	m := md5.New()
-	m.Write([]byte(s))
-	return hex.EncodeToString(m.Sum(nil))
+func (p Password) Redacted() interface{} {
+	return logging.Redact(string(p))
 }
-
-func isExist(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil || os.IsExist(err)
-}
-
-func getFileSize(file string) int64 {
-	f, e := os.Stat(file)
-	if e != nil {
-		fmt.Println(e.Error())
-		return 0
-	}
-	return f.Size()
-}
-
-func mkdirLog(dir string) (e error) {
-	a := isExist(dir)
-	if !a {
-		if err := os.MkdirAll(dir, 0666); err != nil {
-			if os.IsPermission(err) {
-				e = err
-			}
-		}
-	}
-	return
-}
-
-func catchError() {
-	if err := recover(); err != nil {
-		fmt.Println(string((debug.Stack())))
-	}
-}
-
-/**
-public
 */
-var defaultLog *logConsole = newLogConsole()
 
-func SetConsole(isConsole bool) {
-	defaultLog.setConsole(isConsole)
+// 0 - 5  C-D
+
+var log = logging.MustGetLogger("happyyLog")
+
+var format = logging.MustStringFormatter(
+	`%{color}%{time:15:04:05.000} %{shortfile} %{longfunc} > %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+)
+
+func InitLogger(fileName string, fileSize int, fileMax int, logLv int, LogConsolePrint bool) {
+
+	backendFile := logging.NewLogBackend(&lumberjack.Logger{
+		Filename: "./logs/" + fileName + ".log",
+		MaxSize:  fileSize, // megabytes
+		Compress: true,     // disabled by default
+
+		MaxAge:     7,
+		MaxBackups: fileMax,
+		LocalTime:  true,
+	}, "", 0)
+
+	backendFileErr := logging.NewLogBackend(&lumberjack.Logger{
+		Filename: "./logs/" + fileName + "-error.log",
+		MaxSize:  fileSize, // megabytes
+		Compress: false,    // disabled by default
+
+		MaxAge:     7,
+		MaxBackups: fileMax,
+		LocalTime:  true,
+	}, "", 0)
+
+	backendFileFormatter := logging.NewBackendFormatter(backendFile, format)
+	backendFileErrFormatter := logging.NewBackendFormatter(backendFileErr, format)
+
+	backendFileLeveled := logging.AddModuleLevel(backendFileFormatter)
+	backendFileLeveled.SetLevel(logging.Level(logLv), "")
+	backendFileErrLeveled := logging.AddModuleLevel(backendFileErrFormatter)
+	backendFileErrLeveled.SetLevel(logging.ERROR, "")
+
+	var backend2 *logging.LogBackend = nil
+	var backend2Formatter logging.Backend
+
+	if LogConsolePrint {
+		backend2 = logging.NewLogBackend(os.Stdout, "", 0)
+		backend2Formatter = logging.NewBackendFormatter(backend2, format)
+	}
+
+	if backend2 == nil {
+		logging.SetBackend(backendFileLeveled, backendFileErrLeveled)
+	} else {
+		logging.SetBackend(backendFileLeveled, backendFileErrLeveled, backend2Formatter)
+	}
 }
 
-func SetLevel(_level LEVEL) {
-	defaultLog.setLevel(_level)
-}
+var Debug = log.Debug
+var Debugf = log.Debugf
+var Info = log.Info
+var Infof = log.Infof
+var Notice = log.Notice
+var Noticef = log.Noticef
+var Warn = log.Warning
+var Warnf = log.Warningf
+var Error = log.Error
+var Errorf = log.Errorf
 
-func SetFormat(logFormat string) {
-	defaultLog.setFormat(logFormat)
-}
+var Critical = log.Error
+var Criticalf = log.Criticalf
 
-func SetRollingFile(dir, fileName string, maxFileSize int64, maxFileCount int32) {
-	defaultLog.setRollingFile(dir, fileName, maxFileSize, maxFileCount)
-}
-
-func SetRollingDaily(fileDir, fileName string) {
-	defaultLog.setRollingDaily(fileDir, fileName)
-}
-
-func Debug(v ...interface{}) {
-	defaultLog.debug(v...)
-}
-func Info(v ...interface{}) {
-	defaultLog.info(v...)
-}
-func Warn(v ...interface{}) {
-	defaultLog.warn(v...)
-}
-func Error(v ...interface{}) {
-	defaultLog.error(v...)
-}
-func Fatal(v ...interface{}) {
-	defaultLog.fatal(v...)
-}
-
-func SetLevelFile(level LEVEL, dir, fileName string) {
-	defaultLog.setLevelFile(level, dir, fileName)
-}
+var Fatal = log.Fatal
+var Fatalf = log.Fatalf
+var Panic = log.Panic
+var Panicf = log.Panicf

@@ -4,7 +4,6 @@ import (
 	"custom/happy/hCommon"
 	"custom/happy/hDataBase/mongo"
 	"custom/happy/hECS"
-	"custom/happy/hLog"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -110,9 +109,8 @@ func (this *ConfigComponent) SetDefault() {
 		//runtime
 		RuntimeMaxWorker: runtime.NumCPU(),
 		//log
-		LogLevel: hLog.DEBUG,
+		LogLevel: 4,
 		LogPath:  "./log",
-		LogMode:  hLog.ROLLFILE,
 		//LogFileUnit:     hLog.MB,
 		LogFileMax:      10,
 		LogFileSizeMax:  10, // 这里默认单位设置成了 MB
@@ -181,15 +179,13 @@ func (this *ConfigComponent) SetDefault() {
 	Default config
 */
 type CommonConfig struct {
-	Debug            bool          //是否为Debug模式
-	RuntimeMaxWorker int           //runtime最大工作线程
-	LogLevel         hLog.LEVEL    //log等级
-	LogPath          string        //log的存储根目录
-	LogMode          hLog.ROLLTYPE //log文件存储模式，分为按文件大小分割，按日期分割
-	//LogFileUnit      hLog.UNIT     //log文件大小单位
-	LogFileMax      int32 // log文件最大值
-	LogFileSizeMax  int64
-	LogConsolePrint bool //是否输出log到控制台
+	Debug            bool   //是否为Debug模式
+	RuntimeMaxWorker int    //runtime最大工作线程
+	LogLevel         int    //log等级
+	LogPath          string //log的存储根目录
+	LogFileMax       int    // log文件最大值
+	LogFileSizeMax   int
+	LogConsolePrint  bool //是否输出log到控制台
 
 }
 type Node struct {

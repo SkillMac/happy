@@ -61,19 +61,8 @@ func (this *LauncherComponent) Initialize() error {
 	rpc.HeartInterval = time.Millisecond * time.Duration(hConfig.Config.ClusterConfig.RpcHeartBeatInterval)
 	rpc.DebugMode = hConfig.Config.CommonConfig.Debug
 
-	//log设置
-	switch hConfig.Config.CommonConfig.LogMode {
-	case hLog.DAILY:
-		hLog.SetRollingDaily(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.WorkName)
-	case hLog.ROLLFILE:
-		hLog.SetRollingFile(hConfig.Config.CommonConfig.LogPath, hConfig.Config.ClusterConfig.WorkName, hConfig.Config.CommonConfig.LogFileSizeMax*hLog.MB, hConfig.Config.CommonConfig.LogFileMax)
-	}
-	hLog.SetLevel(hConfig.Config.CommonConfig.LogLevel)
-
-	hLog.SetLevelFile(hLog.INFO, "./log", hConfig.Config.ClusterConfig.WorkName+"-info")
-	hLog.SetLevelFile(hLog.WARN, "./log", hConfig.Config.ClusterConfig.WorkName+"-warn")
-	hLog.SetLevelFile(hLog.ERROR, "./log", hConfig.Config.ClusterConfig.WorkName+"-error")
-	hLog.SetLevelFile(hLog.FATAL, "./log", hConfig.Config.ClusterConfig.WorkName+"-fatal")
+	hLog.InitLogger(hConfig.Config.ClusterConfig.WorkName, hConfig.Config.CommonConfig.LogFileSizeMax, hConfig.Config.CommonConfig.LogFileMax,
+		hConfig.Config.CommonConfig.LogLevel, hConfig.Config.CommonConfig.LogConsolePrint)
 
 	return nil
 }
@@ -116,7 +105,7 @@ func (this *LauncherComponent) Serve() {
 	// 添加数据库连接
 	if hCommon.Contains(this.Config.ClusterConfig.Role, "modle") {
 		// 有 gate 角色才添加
-		this.Root().AddComponent(&ModleComponent{})
+		this.AddComponentGroup("modle", []hEcs.IComponent{&ModleComponent{}})
 	}
 
 	//添加基础组件组,一般通过组建组的定义决定服务器节点的服务角色

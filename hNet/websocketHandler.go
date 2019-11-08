@@ -146,6 +146,7 @@ func (this *WebSocketHandler) recv(sess *Session, conn *websocket.Conn) {
 			// TODO
 			this.gpool.AddJobSerial(handler, []interface{}{sess, pkg, sess.Id}, wid, func(workerId int32) {
 				wid = workerId
+				sess.SetProperty("workerId", wid)
 			})
 		} else {
 			go handler(sess, pkg)
