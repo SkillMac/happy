@@ -5,10 +5,11 @@ import (
 	"custom/happy/hCommon"
 	"custom/happy/hConfig"
 	"custom/happy/hLog"
-	"encoding/binary"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"sync"
+	"sync/atomic"
 )
 
 type HttpConn struct {
@@ -21,13 +22,10 @@ func (this *HttpConn) Addr() string {
 }
 
 func (this *HttpConn) WriteMessage(messageType uint32, data []byte) error {
-	msg := make([]byte, 4)
-	msg = append(msg, data...)
-	binary.BigEndian.PutUint32(msg[:4], messageType)
 	this.locker.Lock()
 	defer this.locker.Unlock()
-	this.httpConn.JSON(http.StatusOK, gin.H{"Data": msg})
-	return nil
+	_, err := this.httpConn.Writer.Write(data)
+	return err
 }
 
 func (this *HttpConn) Close() error {
@@ -35,7 +33,8 @@ func (this *HttpConn) Close() error {
 }
 
 type MsgData struct {
-	Data []byte
+	MsgId int         `json:"msgId"`
+	Data  interface{} `json:"data"`
 }
 
 type HttpHandler struct {
@@ -61,7 +60,9 @@ func (this *HttpHandler) Listen() error {
 	go func() {
 		err := router.Run(hConfig.Config.ClusterConfig.NetListenAddress)
 		if err != nil {
-			hLog.Critical(err)
+			hLog.Critical("Http Server run Fail ", err)
+		} else {
+			hLog.Info("Http Server run Success host: ==> ", hConfig.Config.ClusterConfig.NetListenAddress)
 		}
 	}()
 	return nil
@@ -75,14 +76,13 @@ func (this *HttpHandler) Api(ctx *gin.Context) {
 		http.Error(w, "Post type is not POST", http.StatusMethodNotAllowed)
 		return
 	}
-
-	//atomic.AddInt32(&this.acceptNum, 1)
+	atomic.AddInt32(&this.acceptNum, 1)
 	sess := NewSeesion(hCommon.GetUUID(), &HttpConn{httpConn: ctx})
 
 	var p MsgData
 	err := ctx.BindJSON(&p)
 	if err != nil {
-
+		ctx.JSON(http.StatusOK, gin.H{"Status": "-1", "Msg": "post data err!!!"})
 	} else {
 		this.revc(sess, &p)
 	}
@@ -90,16 +90,18 @@ func (this *HttpHandler) Api(ctx *gin.Context) {
 
 func (this *HttpHandler) revc(sess *Session, p *MsgData) {
 	sess.SetProperty("workerId", int32((-1)))
-	this.handleMsg(sess, p.Data)
 
-	wid := int32(-1)
+	//wid := int32(-1)
 
-	if this.conf.IsUsePool {
+	if /*this.conf.IsUsePool*/ true {
 		// TODO
-		this.gpool.AddJobSerial(this.handleMsg, []interface{}{sess, p, sess.Id}, wid, func(workerId int32) {
-			wid = workerId
-			sess.SetProperty("workerId", wid)
-		})
+		// 暂时不能使用携程 不然这个 context 将会变得无效
+		//this.gpool.AddJobSerial(this.handleMsg, []interface{}{sess, p, sess.Id}, wid, func(workerId int32) {
+		//	wid = workerId
+		//	sess.SetProperty("workerId", wid)
+		//})
+		this.handleMsg(sess, p)
+		atomic.AddInt32(&this.acceptNum, -1)
 	} else {
 		go this.handleMsg(sess, p)
 	}
@@ -111,9 +113,12 @@ func (this *HttpHandler) handleMsg(args ...interface{}) {
 	if this.conf.CustomeHandler != nil {
 		this.conf.CustomeHandler(args[0].(*Session), args[1].([]byte))
 	} else {
-		mid, mes := this.conf.PackageProtocol.Decode(ctx, args[1].([]byte))
-		if this.conf.LogicAPI != nil && mid != nil {
-			this.server.invoke(ctx, mid[0], mes)
+		//mid, mes := this.conf.PackageProtocol.Decode(ctx, args[1].([]byte))
+		p := args[1].(*MsgData)
+		mid := p.MsgId
+		mes, _ := json.Marshal(p.Data)
+		if this.conf.LogicAPI != nil && mid > 0 {
+			this.server.invoke(ctx, uint32(mid), mes)
 		} else {
 			hLog.Error("[Error] no message handler")
 		}
@@ -134,4 +139,12 @@ func (this *HttpHandler) Destroy() error {
 		this.gpool.Release()
 	}
 	return nil
+}
+
+/**
+New
+*/
+func NewHttpHandler(conf *ServerConf, server *Server) *HttpHandler {
+	httpH := &HttpHandler{conf: conf, server: server}
+	return httpH
 }

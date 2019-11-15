@@ -65,6 +65,8 @@ func (this *Server) getHandler() IHander {
 	var h IHander = nil
 	if this.conf.Protocol == "ws" {
 		h = NewWebSocketHandler(this.conf, this)
+	} else if this.conf.Protocol == "http" {
+		h = NewHttpHandler(this.conf, this)
 	} else if this.conf.Protocol == "udp" {
 		// TODO
 		panic("unsupport protocol: " + this.conf.Protocol)
