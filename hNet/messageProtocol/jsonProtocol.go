@@ -1,7 +1,7 @@
 package messageProtocol
 
 import (
-	"encoding/json"
+	"github.com/json-iterator/go"
 )
 
 type JsonProtocol struct {
@@ -12,9 +12,9 @@ func NewJsonProtocol() *JsonProtocol {
 }
 
 func (this *JsonProtocol) Marshal(message interface{}) ([]byte, error) {
-	return json.Marshal(message)
+	return jsoniter.Marshal(message) //json.Marshal(message)
 }
 
 func (this *JsonProtocol) Unmarshal(data []byte, messageType interface{}) error {
-	return json.Unmarshal(data, &messageType)
+	return jsoniter.Unmarshal(data, &messageType) //json.Unmarshal(data, &messageType)
 }
