@@ -3,6 +3,7 @@ package hConfig
 import (
 	"custom/happy/hCommon"
 	"custom/happy/hDataBase/mongo"
+	"custom/happy/hDataBase/redis"
 	"custom/happy/hECS"
 	"encoding/json"
 	"errors"
@@ -172,6 +173,15 @@ func (this *ConfigComponent) SetDefault() {
 			Toers:      "",
 			CCers:      "",
 		},
+		Resis: redis.DbCfg{
+			Host:        "",
+			Port:        0,
+			Pwd:         "",
+			MaxIdle:     0,
+			MaxActive:   0,
+			IdleTimeout: 0,
+			DbNum:       0,
+		},
 	}
 }
 
@@ -226,4 +236,5 @@ type ClusterConfig struct {
 type CustomConfig struct {
 	Mongo mongo.DbCfg
 	Email hCommon.EmailParam
+	Resis redis.DbCfg
 }

@@ -4,6 +4,7 @@ import (
 	"custom/happy/hCluster"
 	"custom/happy/hConfig"
 	"custom/happy/hDataBase/mongo"
+	"custom/happy/hDataBase/redis"
 	"custom/happy/hECS"
 	"custom/happy/hLog"
 	"gopkg.in/mgo.v2"
@@ -17,6 +18,7 @@ type ModleComponent struct {
 	hEcs.ComponentBase
 	nodeComponent *hCluster.NodeComponent
 	M             *mongo.DbOperate
+	R             *redis.Rds
 }
 
 func (this *ModleComponent) IsUnique() int {
@@ -44,6 +46,9 @@ func (this *ModleComponent) initDatabase() {
 }
 
 func (this *ModleComponent) initMongoDB() {
+	if hConfig.Config.CustomConfig.Mongo.DbHost == "" {
+		return
+	}
 	this.M = mongo.NewDbOperate(mongo.NewDbCfg(
 		hConfig.Config.CustomConfig.Mongo.DbHost,
 		hConfig.Config.CustomConfig.Mongo.DbPort,
@@ -59,8 +64,16 @@ func (this *ModleComponent) initMongoDB() {
 }
 
 func (this *ModleComponent) initRedis() {
-	hLog.Info("Redis 数据库初始化  TODO")
-
+	if hConfig.Config.CustomConfig.Resis.Host == "" {
+		return
+	}
+	this.R = redis.NewRds(redis.NewDbCfg(
+		hConfig.Config.CustomConfig.Resis.Host,
+		hConfig.Config.CustomConfig.Resis.Port,
+		hConfig.Config.CustomConfig.Resis.Pwd,
+		hConfig.Config.CustomConfig.Resis.MaxIdle,
+		hConfig.Config.CustomConfig.Resis.IdleTimeout,
+		hConfig.Config.CustomConfig.Resis.DbNum))
 }
 
 //func (this *ModleComponent) Awake(ctx *hEcs.Context) {

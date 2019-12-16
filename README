@@ -12,3 +12,5 @@
 |-|github.com/natefinch/lumberjack|
 |-|github.com/op/go-logging|
 |-|github.com/robfig/cron|
+|-|github.com/gomodule/redigo/redis|
+|-|gopkg.in/mgo.v2|
