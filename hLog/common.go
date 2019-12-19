@@ -19,7 +19,7 @@ func (p Password) Redacted() interface{} {
 var log = logging.MustGetLogger("happyyLog")
 
 var format = logging.MustStringFormatter(
-	`%{color}%{time:15:04:05.000} %{shortfile} %{longfunc} > %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	`%{color}%{time:2006年01月02日 15:04:05.000} %{shortfile} %{longfunc} > %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 )
 
 func InitLogger(fileName string, fileSize int, fileMax int, logLv int, LogConsolePrint bool) {
