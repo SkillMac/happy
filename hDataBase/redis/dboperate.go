@@ -112,10 +112,20 @@ func (this *Rds) Del(tbName string) (interface{}, error) {
 	return this.do("DEL", tbName)
 }
 
+//EXISTS KEY_NAME
+func (this *Rds) Exists(tbName string) (interface{}, error) {
+	return this.do("EXISTS", tbName)
+}
+
+//Expire KEY_NAME TIME_IN_SECONDS
+func (this *Rds) Expire(tbName string, t int64) (interface{}, error) {
+	return this.do("EXPIRE", tbName, t)
+}
+
 /*
 * 可以添加多个成员 一个是  score key ...
  */
-func (this *Rds) ZAdd(tbName string, score int, key string) (interface{}, error) {
+func (this *Rds) ZAdd(tbName string, score int64, key string) (interface{}, error) {
 	return this.do("ZADD", tbName, score, key)
 }
 
@@ -123,19 +133,19 @@ func (this *Rds) ZLen(tbName string) (interface{}, error) {
 	return this.do("ZCARD", tbName)
 }
 
-func (this *Rds) ZLenInRange(tbName string, min, max int) (interface{}, error) {
+func (this *Rds) ZLenInRange(tbName string, min, max int64) (interface{}, error) {
 	return this.do("ZCOUNT", tbName, min, max)
 }
 
 //ZINCRBY
-func (this *Rds) ZIncrby(tbName string, addScore int, key string) (interface{}, error) {
+func (this *Rds) ZIncrby(tbName string, addScore int64, key string) (interface{}, error) {
 	return this.do("ZINCRBY", tbName, addScore, key)
 }
 
 // ZRANGE salary 0 -1 WITHSCORES
 // start 和 stop 都以 0 为底，也就是说，以 0 表示有序集第一个成员，以 1 表示有序集第二个成员，以此类推。
 // 从小到大排序
-func (this *Rds) ZRange(tbName string, startIndex, endIndex int, isWithScores bool) (interface{}, error) {
+func (this *Rds) ZRange(tbName string, startIndex, endIndex int64, isWithScores bool) (interface{}, error) {
 	if isWithScores {
 		return this.do("ZRANGE", tbName, startIndex, endIndex, "WITHSCORES")
 	} else {
@@ -144,7 +154,7 @@ func (this *Rds) ZRange(tbName string, startIndex, endIndex int, isWithScores bo
 }
 
 // ZREVRANGE key start stop [WITHSCORES]
-func (this *Rds) ZRevRange(tbName string, startIndex, endIndex int, isWithScores bool) (interface{}, error) {
+func (this *Rds) ZRevRange(tbName string, startIndex, endIndex int64, isWithScores bool) (interface{}, error) {
 	if isWithScores {
 		return this.do("ZREVRANGE", tbName, startIndex, endIndex, "WITHSCORES")
 	} else {
@@ -176,7 +186,7 @@ func (this *Rds) ZRemove(tbName string, keys ...interface{}) (interface{}, error
 
 // ZREMRANGEBYRANK key start stop
 // 包含关系 // 降序
-func (this *Rds) ZRemoveByIndex(tbName string, startIndex, endIndex int) (interface{}, error) {
+func (this *Rds) ZRemoveByIndex(tbName string, startIndex, endIndex int64) (interface{}, error) {
 	return this.do("ZREMRANGEBYRANK", tbName, startIndex, endIndex)
 }
 

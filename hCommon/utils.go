@@ -158,6 +158,7 @@ func MD5(str string) string {
 }
 
 func GenRandom(start int, end int, count int) []int {
+	end += 1
 	//范围检查
 	if end < start || (end-start) < count {
 		return nil
