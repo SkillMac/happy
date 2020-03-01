@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"custom/happy/hLog"
 	"errors"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
@@ -55,7 +56,7 @@ func NewRds(cfg *DbCfg) *Rds {
 	// 3 ,50
 	// "vdonggames123"
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
-
+	hLog.Debugf("redis 连接地址%s", address)
 	pool := &redis.Pool{
 		Wait:        true,
 		MaxIdle:     cfg.MaxIdle,
@@ -76,7 +77,7 @@ func NewRds(cfg *DbCfg) *Rds {
 				_ = conn.Close()
 				return nil, selecterr
 			}
-			fmt.Println("Redis 连接成功")
+			hLog.Info("Redis 连接成功")
 			return conn, err
 		},
 		TestOnBorrow: func(conn redis.Conn, t time.Time) error {
@@ -110,6 +111,16 @@ func (this *Rds) Set(tbName string, val interface{}) (interface{}, error) {
 
 func (this *Rds) Del(tbName string) (interface{}, error) {
 	return this.do("DEL", tbName)
+}
+
+//EXISTS KEY_NAME
+func (this *Rds) Exists(tbName string) (interface{}, error) {
+	return this.do("EXISTS", tbName)
+}
+
+//Expire KEY_NAME TIME_IN_SECONDS
+func (this *Rds) Expire(tbName string, t int64) (interface{}, error) {
+	return this.do("EXPIRE", tbName, t)
 }
 
 /*
