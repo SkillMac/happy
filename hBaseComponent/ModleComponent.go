@@ -64,16 +64,16 @@ func (this *ModleComponent) initMongoDB() {
 }
 
 func (this *ModleComponent) initRedis() {
-	if hConfig.Config.CustomConfig.Resis.Host == "" {
+	if hConfig.Config.CustomConfig.Redis.Host == "" {
 		return
 	}
 	this.R = redis.NewRds(redis.NewDbCfg(
-		hConfig.Config.CustomConfig.Resis.Host,
-		hConfig.Config.CustomConfig.Resis.Port,
-		hConfig.Config.CustomConfig.Resis.Pwd,
-		hConfig.Config.CustomConfig.Resis.MaxIdle,
-		hConfig.Config.CustomConfig.Resis.IdleTimeout,
-		hConfig.Config.CustomConfig.Resis.DbNum))
+		hConfig.Config.CustomConfig.Redis.Host,
+		hConfig.Config.CustomConfig.Redis.Port,
+		hConfig.Config.CustomConfig.Redis.Pwd,
+		hConfig.Config.CustomConfig.Redis.MaxIdle,
+		hConfig.Config.CustomConfig.Redis.IdleTimeout,
+		hConfig.Config.CustomConfig.Redis.DbNum))
 }
 
 //func (this *ModleComponent) Awake(ctx *hEcs.Context) {

@@ -173,7 +173,7 @@ func (this *ConfigComponent) SetDefault() {
 			Toers:      "",
 			CCers:      "",
 		},
-		Resis: redis.DbCfg{
+		Redis: redis.DbCfg{
 			Host:        "",
 			Port:        0,
 			Pwd:         "",
@@ -236,5 +236,5 @@ type ClusterConfig struct {
 type CustomConfig struct {
 	Mongo mongo.DbCfg
 	Email hCommon.EmailParam
-	Resis redis.DbCfg
+	Redis redis.DbCfg
 }
