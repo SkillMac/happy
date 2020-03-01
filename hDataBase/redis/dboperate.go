@@ -126,7 +126,7 @@ func (this *Rds) Expire(tbName string, t int64) (interface{}, error) {
 /*
 * 可以添加多个成员 一个是  score key ...
  */
-func (this *Rds) ZAdd(tbName string, score int64, key string) (interface{}, error) {
+func (this *Rds) ZAdd(tbName string, score int, key string) (interface{}, error) {
 	return this.do("ZADD", tbName, score, key)
 }
 
@@ -155,7 +155,7 @@ func (this *Rds) ZRange(tbName string, startIndex, endIndex int64, isWithScores 
 }
 
 // ZREVRANGE key start stop [WITHSCORES]
-func (this *Rds) ZRevRange(tbName string, startIndex, endIndex int64, isWithScores bool) (interface{}, error) {
+func (this *Rds) ZRevRange(tbName string, startIndex, endIndex int, isWithScores bool) (interface{}, error) {
 	if isWithScores {
 		return this.do("ZREVRANGE", tbName, startIndex, endIndex, "WITHSCORES")
 	} else {
